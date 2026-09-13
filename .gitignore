@@ -3,7 +3,7 @@ node_modules/
 .pnp
 .pnp.js
 
-# Environment and secrets — never commit these (NFR-3)
+# Environment and secrets which should never be commited these (NFR-3)
 .env
 .env.*
 !.env.example

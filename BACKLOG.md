@@ -9,8 +9,8 @@ Priority levels:
 | Priority | Meaning |
 | --- | --- |
 | **High** | Must be in the MVP — Milestone 1 |
-| **Medium** | Improves the product substantially — target Milestone 2 |
-| **Low** | Valuable, added if time allows — Milestone 3 |
+| **Medium** | Improves the product substantially: target Milestone 2 |
+| **Low** | Valuable, added if time allows: Milestone 3 |
 
 Points are on a 1–5 scale and estimate **complexity**, not elapsed time.
 
