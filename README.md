@@ -11,19 +11,17 @@ Luke McArthur (lgmcarthur@crimson.ua.edu) · Jesse Seidel (jpseidel@crimson.ua.e
 
 ## Status
 
-Milestone 0 — planning complete. Implementation begins in Sprint 1 (Sep 2–15, 2026).
+Mileston 1 has begun. Scaffolding has been implemented. Has a basic webpage for viewing a health endpoint. 
 
 ## Stack
 
-React 19 on the client, Node.js + Express 5 on the server, PostgreSQL for storage. Three-tier
-client–server: only the backend touches the database, and all permission checks happen on the
+We are using React 19 on the client, Node.js + Express 5 on the server, PostgreSQL for storage. Three-tier
+client–server: only the backend interacts with the database, and all permission checks happen on the
 server. See [docs/architecture.md](docs/architecture.md) for the diagrams and data model.
 
 ## Getting started
 
-> Not runnable yet — the application is scaffolded in Sprint 1.
-
-**Prerequisites:** Node.js 20+, npm, PostgreSQL 16+
+**Prerequisites:** Node.js 20+, npm, PostgreSQL 16+, postgrator. 
 
 ```bash
 git clone https://github.com/luke-mca/BenchTime.git
@@ -31,18 +29,18 @@ cd BenchTime
 
 # Server
 cd server
-cp .env.example .env      # then fill in DATABASE_URL and SESSION_SECRET
+cp .env.example .env      # then fill in all the fields. 
 npm install
-npm run migrate
+npm run migrate           # make sure your sql database is running. 
 npm run dev               # http://localhost:3000
 
 # Client (second terminal)
 cd client
 npm install
-npm run dev               # http://localhost:5173
+npm run dev               # http://localhost:5173(open this in your browser). 
 ```
 
-Configuration comes from a `.env` file that is never committed; `.env.example` documents every
+Configuration comes from a `.env` file that is never committed. `.env.example` documents every
 variable.
 
 ### Tests
@@ -68,8 +66,8 @@ Two-week sprints, two per milestone. Work is tracked as GitHub Issues; `main` is
 every change lands through a pull request reviewed by the other member. `main` is tagged at each
 milestone.
 
-A task is done when it does what the issue asked, has been reviewed and merged through a pull
-request, has tests and the suite passes, and the app still runs from a fresh clone using the
+A task is considered done when it does what the issue asked, has been reviewed and merged through a pull
+request, has tests and the suite passes(if applicable), and the app still runs from a fresh clone using the
 instructions above.
 
 ## Contribution statements — Milestone 0

@@ -96,14 +96,13 @@ erDiagram
     }
 ```
 
-A lab is an equipment calendar owned by exactly one manager, and a membership is what grants a
-member access to it. Equipment removal is a soft delete so old reservations stay intact for the
+A lab is an equipment calendar owned by exactly one manager and a membership can grant a
+member access to it. Equipment removal is only a soft delete so old reservations stay intact for the
 usage statistics planned after the MVP.
 
 ## The overlap guarantee
 
-Checking in application code is not enough — two requests can both read "the slot is free"
-before either one writes. Postgres expresses the rule directly:
+Checking in application code is not good enough so this will also be enforced in sql. 
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS btree_gist;
@@ -115,5 +114,4 @@ ALTER TABLE reservation ADD CONSTRAINT no_overlapping_reservations
   );
 ```
 
-The API still validates and returns a readable error (NFR-6), but the constraint is what makes
-the guarantee hold under concurrency. This backs US-4 in the [backlog](../BACKLOG.md).
+The API still validates and returns a readable error (NFR-6). 

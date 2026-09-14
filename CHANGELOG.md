@@ -15,3 +15,13 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 - Initial architecture (`docs/architecture.md`) — system-context and container diagrams, the
   data model, and the reservation overlap strategy.
 - `.gitignore` covering dependencies, build output, coverage, and `.env` secrets.
+
+## [milestone-1] — 2026-09-13
+
+### Added 
+
+- Server folder with scafolding for basic health/database endpoints. 
+- Example .env file within the server folder. 
+- Client folder with a basic webpage that displays the status of the health endpoint. 
+- .sql files with the data base format. 
+- js migration file under server/db/scripts for automatically migrating the database. 

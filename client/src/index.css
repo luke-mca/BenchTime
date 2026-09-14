@@ -1,0 +1,42 @@
+:root {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+  color: #1a1a1a;
+  background: #f6f7f9;
+}
+
+body {
+  margin: 0;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+}
+
+main {
+  background: #fff;
+  padding: 2rem 2.5rem;
+  border-radius: 8px;
+  border: 1px solid #e2e5ea;
+  min-width: 20rem;
+}
+
+h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+}
+
+.subtitle {
+  margin: 0 0 1.5rem;
+  color: #5a6472;
+}
+
+.status {
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-size: 0.875rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  background: #f0f2f5;
+}
+
+.status.ok { background: #e7f5ec; color: #18603a; }
+.status.error { background: #fdeceb; color: #8a1c14; }

@@ -4,7 +4,7 @@ Due: 2026-09-02
 
 | Deliverable | Location |
 | --- | --- |
-| Project proposal PDF | `BenchTime-Milestone-0.pdf` *(add to this folder)* |
+| Project proposal PDF | [BenchTime-Milestone-0.pdf](BenchTime-Milestone-0.pdf) |
 | Shared GitHub repository link | https://github.com/luke-mca/BenchTime |
 | Initial README | [../../README.md](../../README.md) |
 | Prioritized backlog | [../../BACKLOG.md](../../BACKLOG.md) |
