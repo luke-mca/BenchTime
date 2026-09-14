@@ -1,5 +1,8 @@
--- Represents a user. 
--- Members and lab managers share one table so a username is unique across both. 
+-- Needed for the reservations_no_overlap constraint below: GiST has no = operator for bigint without it.
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+-- Represents a user.
+-- Members and lab managers share one table so a username is unique across both.
 CREATE TABLE users (
   id            bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   username      text        NOT NULL CHECK (length(btrim(username)) > 0),
