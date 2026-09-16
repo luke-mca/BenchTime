@@ -25,3 +25,13 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 - Client folder with a basic webpage that displays the status of the health endpoint. 
 - .sql files with the data base format. 
 - js migration file under server/db/scripts for automatically migrating the database. 
+
+## [milestone-1] — 2026-09-16
+
+### Added 
+
+- Added labs.js endpoints with SQL queries for interacting with the db(as needed to display lab pages). 
+- Added me.js to allow the client to authenticate themselves(temporary). 
+- Added auth.js with the authentication used by labs.js. 
+- Added LabPage.jsx and LabsPage.jsx for displaying all labs belonging to a logged in lab manager and all all members inside of each lab. 
+- Allowed a signed in manager to 1: create labs and 2: add members to a lab. 
