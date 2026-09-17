@@ -24,7 +24,9 @@ export const config = Object.freeze({
 
   databaseUrl: get_env_val('DATABASE_URL',),
 
-  sessionSecret: get_env_val('SESSION_SECRET'),
+  //Separate secrets so a leaked access token secret can't be used to forge refresh tokens.
+  accessTokenSecret: get_env_val('ACCESS_TOKEN_SECRET'),
+  refreshTokenSecret: get_env_val('REFRESH_TOKEN_SECRET'),
 
   clientOrigin: get_env_val('CLIENT_ORIGIN') 
 });

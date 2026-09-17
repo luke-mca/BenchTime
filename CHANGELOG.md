@@ -25,3 +25,19 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 - Client folder with a basic webpage that displays the status of the health endpoint. 
 - .sql files with the data base format. 
 - js migration file under server/db/scripts for automatically migrating the database. 
+
+## [Unreleased]
+
+### Added
+
+- Member and lab manager registration and login (US-1, US-6). Passwords are hashed with bcrypt.
+- JWT authentication: a 15-minute access token and a 7-day refresh token, both in httpOnly cookies.
+  Endpoints: `POST /api/auth/register`, `/login`, `/refresh`, `/logout`, and `GET /api/auth/me`.
+- `requireAuth` and `requireRole` middleware for server-side permission checks (FR-3).
+- Consistent `{ error: { code, message } }` error responses (NFR-6).
+- Client routing with a landing page, login and sign-up pages, and a role-based home placeholder.
+- Tailwind CSS for client styling.
+
+### Changed
+
+- `SESSION_SECRET` replaced by `ACCESS_TOKEN_SECRET` and `REFRESH_TOKEN_SECRET` in `server/.env`.

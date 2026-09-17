@@ -44,7 +44,7 @@ graph TB
     db[("<b>PostgreSQL</b><br/>Users, labs, memberships,<br/>equipment, reservations")]
 
     user -->|HTTPS| spa
-    spa -->|"JSON over HTTPS<br/>session cookie"| api
+    spa -->|"JSON over HTTPS<br/>JWT in httpOnly cookie"| api
     api -->|SQL| db
 
     classDef c fill:#3d7ab8,stroke:#25567f,color:#fff
