@@ -1,92 +1,47 @@
-import { useState } from 'react';
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
-import { api, setUserId } from './lib/api.js';
-import LabsPage from './pages/LabsPage.jsx';
-import LabPage from './pages/LabPage.jsx';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { AuthProvider, AUTH_STATUS, useAuth } from './lib/AuthContext.jsx';
+import { NavBar } from './components/NavBar.jsx';
+import { Landing } from './components/Landing.jsx';
+import { Home } from './components/Home.jsx';
+import { LoginForm } from './components/LoginForm.jsx';
+import { RegisterForm } from './components/RegisterForm.jsx';
 
-//This page is temporary until the login system is fully built.
+//Routing and layout only. No business logic here.
 export default function App() {
-  //The confirmed manager, or null while nobody is acting yet.
-  const [user, setUser] = useState(null);
-  const [error, setError] = useState('');
-  const [checking, setChecking] = useState(false);
-  const navigate = useNavigate();
-
-  /*
-  Checks an id against the database and takes it into use if it is good.
-  id: the id that was entered.
-  */
-  async function useId(id) {
-    setChecking(true);
-    setError('');
-    //Stored first so the request below sends it.
-    setUserId(id);
-
-    try {
-      const body = await api.me();
-      setUser(body.user);
-    } catch (err) {
-      //Invalid id
-      setUserId('');
-      setUser(null);
-      setError(err.message);
-    } finally {
-      setChecking(false);
-    }
-  }
-
-  function handleSubmit(event) {
-    event.preventDefault();
-    useId(new FormData(event.target).get('userId').trim());
-  }
-
-  function handleChangeUser() {
-    setUserId('');
-    setUser(null);
-    setError('');
-    //Off any lab page, since the next user may not own it.
-    navigate('/labs');
-  }
-
   return (
-    <main>
-      <h1>BenchTime</h1>
-      <p className="subtitle">Lab equipment reservation system</p>
-
-      {checking && <p>Checking id...</p>}
-
-      {/* Nothing else is shown until an id has been confirmed. */}
-      {!checking && !user && (
-        <form onSubmit={handleSubmit}>
-          <p>Enter the id of a manager account to continue.</p>
-
-          {error && <p className="status error">{error}</p>}
-
-          <label htmlFor="user-id">Manager id</label>{' '}
-          <input id="user-id" name="userId" autoFocus />{' '}
-          <button type="submit">Continue</button>
-        </form>
-      )}
-
-      {!checking && user && (
-        <>
-          <p>
-            Acting as {user.username}.{' '}
-            <button type="button" onClick={handleChangeUser}>
-              Change
-            </button>
-          </p>
-
-          <hr />
-
+    <AuthProvider>
+      <BrowserRouter>
+        <NavBar />
+        <main className="mx-auto max-w-4xl px-4 py-8">
           <Routes>
-            <Route path="/labs" element={<LabsPage key={user.id} />} />
-            <Route path="/labs/:labId" element={<LabPage />} />
-            {/* Anything else lands on the lab list. */}
-            <Route path="*" element={<Navigate to="/labs" replace />} />
+            <Route path="/" element={<IndexPage />} />
+            <Route path="/login" element={<LoginForm />} />
+            <Route path="/register" element={<RegisterForm />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
-        </>
-      )}
-    </main>
+        </main>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
+
+//"/" is the landing page for visitors and the home page once signed in.
+function IndexPage() {
+  const { status } = useAuth();
+
+  if (status === AUTH_STATUS.LOADING) {
+    return <p className="text-gray-500">Loading…</p>;
+  }
+  return status === AUTH_STATUS.SIGNED_IN ? <Home /> : <Landing />;
+}
+
+function NotFound() {
+  return (
+    <div className="py-16 text-center">
+      <h1 className="text-2xl font-semibold">Page not found</h1>
+      <Link to="/" className="mt-4 inline-block text-indigo-600 underline">
+        Back to BenchTime
+      </Link>
+    </div>
   );
 }

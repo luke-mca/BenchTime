@@ -35,3 +35,19 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 - Added auth.js with the authentication used by labs.js. 
 - Added LabPage.jsx and LabsPage.jsx for displaying all labs belonging to a logged in lab manager and all all members inside of each lab. 
 - Allowed a signed in manager to 1: create labs and 2: add members to a lab. 
+
+## [Unreleased]
+
+### Added
+
+- Member and lab manager registration and login (US-1, US-6). Passwords are hashed with bcrypt.
+- JWT authentication: a 15-minute access token and a 7-day refresh token, both in httpOnly cookies.
+  Endpoints: `POST /api/auth/register`, `/login`, `/refresh`, `/logout`, and `GET /api/auth/me`.
+- `requireAuth` and `requireRole` middleware for server-side permission checks (FR-3).
+- Consistent `{ error: { code, message } }` error responses (NFR-6).
+- Client routing with a landing page, login and sign-up pages, and a role-based home placeholder.
+- Tailwind CSS for client styling.
+
+### Changed
+
+- `SESSION_SECRET` replaced by `ACCESS_TOKEN_SECRET` and `REFRESH_TOKEN_SECRET` in `server/.env`.
