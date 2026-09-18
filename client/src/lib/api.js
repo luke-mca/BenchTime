@@ -70,4 +70,12 @@ export const api = {
   login: ({ username, password }) => post('/api/auth/login', { username, password }),
   logout: () => post('/api/auth/logout'),
   me: () => request('/api/auth/me'),
+
+  //Labs. Every one of these is manager-only on the server. 
+  listLabs: () => request('/api/labs'),
+  getLab: (labId) => request(`/api/labs/${encodeURIComponent(labId)}`),
+  createLab: (name) => post('/api/labs', { name }),
+  deleteLab: (labId) => request(`/api/labs/${encodeURIComponent(labId)}`, { method: 'DELETE' }),
+  listMembers: (labId) => request(`/api/labs/${encodeURIComponent(labId)}/members`),
+  addMember: (labId, username) => post(`/api/labs/${encodeURIComponent(labId)}/members`, { username }),
 };

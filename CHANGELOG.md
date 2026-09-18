@@ -26,7 +26,7 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 - .sql files with the data base format. 
 - js migration file under server/db/scripts for automatically migrating the database. 
 
-## [milestone-1] — 2026-09-16
+## [Unreleased]
 
 ### Added 
 
@@ -51,3 +51,13 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 ### Changed
 
 - `SESSION_SECRET` replaced by `ACCESS_TOKEN_SECRET` and `REFRESH_TOKEN_SECRET` in `server/.env`.
+
+## [Unreleased]
+
+### Added 
+- Services, routes, and repository files so that a client who is logged in as a manager can create a lab/view the members that are part of that lab. All of these were implemented with FR-3 and FR-6 in mind. 
+- The ability for managers to view the labs they own and add new labs. 
+- The ability for managers to view a web page associated with each lab. 
+
+### Changed 
+- errors.js was updated with some more errors according to (NFR-6). 
