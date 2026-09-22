@@ -28,6 +28,16 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 
 ## [Unreleased]
 
+### Added 
+
+- Added labs.js endpoints with SQL queries for interacting with the db(as needed to display lab pages). 
+- Added me.js to allow the client to authenticate themselves(temporary). 
+- Added auth.js with the authentication used by labs.js. 
+- Added LabPage.jsx and LabsPage.jsx for displaying all labs belonging to a logged in lab manager and all all members inside of each lab. 
+- Allowed a signed in manager to 1: create labs and 2: add members to a lab. 
+
+## [Unreleased]
+
 ### Added
 
 - Member and lab manager registration and login (US-1, US-6). Passwords are hashed with bcrypt.
@@ -41,3 +51,13 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 ### Changed
 
 - `SESSION_SECRET` replaced by `ACCESS_TOKEN_SECRET` and `REFRESH_TOKEN_SECRET` in `server/.env`.
+
+## [Unreleased]
+
+### Added 
+- Services, routes, and repository files so that a client who is logged in as a manager can create a lab/view the members that are part of that lab. All of these were implemented with FR-3 and FR-6 in mind. 
+- The ability for managers to view the labs they own and add new labs. 
+- The ability for managers to view a web page associated with each lab. 
+
+### Changed 
+- errors.js was updated with some more errors according to (NFR-6). 

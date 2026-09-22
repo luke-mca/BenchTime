@@ -31,6 +31,8 @@ async function send(path, options) {
     //Sends the auth cookies, which is how the server knows who is signed in.
     //The tokens are httpOnly, so this code never sees them.
     credentials: 'include',
+    ...options,
+    //Spread last so a caller's own headers do not wipe out the defaults.
     headers: { 'Content-Type': 'application/json', ...options.headers },
   });
 }
@@ -68,4 +70,12 @@ export const api = {
   login: ({ username, password }) => post('/api/auth/login', { username, password }),
   logout: () => post('/api/auth/logout'),
   me: () => request('/api/auth/me'),
+
+  //Labs. Every one of these is manager-only on the server. 
+  listLabs: () => request('/api/labs'),
+  getLab: (labId) => request(`/api/labs/${encodeURIComponent(labId)}`),
+  createLab: (name) => post('/api/labs', { name }),
+  deleteLab: (labId) => request(`/api/labs/${encodeURIComponent(labId)}`, { method: 'DELETE' }),
+  listMembers: (labId) => request(`/api/labs/${encodeURIComponent(labId)}/members`),
+  addMember: (labId, username) => post(`/api/labs/${encodeURIComponent(labId)}/members`, { username }),
 };

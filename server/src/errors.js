@@ -46,3 +46,19 @@ export class ForbiddenError extends AppError {
     super(message, 403, 'FORBIDDEN');
   }
 }
+
+//Used when something belongs to someone else(like a lab belonging to another manager) 
+//but that information should not be shown to the client. 
+export class NotFoundError extends AppError {
+  constructor(message = 'That does not exist.') {
+    super(message, 404, 'NOT_FOUND');
+  }
+}
+
+//For a valid request that conflicts with something like trying to add a member that was already 
+//added to a lab. 
+export class ConflictError extends AppError {
+  constructor(message, code = 'CONFLICT') {
+    super(message, 409, code);
+  }
+}

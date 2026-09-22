@@ -5,6 +5,8 @@ import { Landing } from './components/Landing.jsx';
 import { Home } from './components/Home.jsx';
 import { LoginForm } from './components/LoginForm.jsx';
 import { RegisterForm } from './components/RegisterForm.jsx';
+import { LabPage } from './components/LabPage.jsx';
+import { RequireAuth } from './components/RequireAuth.jsx';
 
 //Routing and layout only. No business logic here.
 export default function App() {
@@ -17,6 +19,14 @@ export default function App() {
             <Route path="/" element={<IndexPage />} />
             <Route path="/login" element={<LoginForm />} />
             <Route path="/register" element={<RegisterForm />} />
+            <Route
+              path="/labs/:labId"
+              element={
+                <RequireAuth role="manager">
+                  <LabPage />
+                </RequireAuth>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

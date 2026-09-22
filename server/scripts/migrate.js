@@ -23,7 +23,7 @@ async function migrate() {
     driver: 'pg',
     database: databaseName,
     schemaTable: 'schema_migrations',
-    validateChecksum: false,
+    validateChecksums: false,
     execQuery: (query) => client.query(query),
   });
 
@@ -48,7 +48,6 @@ async function migrate() {
 migrate().catch((error) => {
   console.error(`\nMigration failed: ${error.message}`);
   if (error.code) console.error(`PostgreSQL code: ${error.code}`);
-  //Set when a run fails partway: says which files did land before the failure.
   if (error.appliedMigrations?.length) {
     console.error(`Applied before failing: ${error.appliedMigrations.join(', ')}`);
   }

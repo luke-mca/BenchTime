@@ -1,7 +1,5 @@
 import { pool } from '../db/pool.js';
 
-//The only module that queries the users table directly.
-
 const COLUMNS = 'id, username, password_hash, role';
 
 export const UserRepository = {

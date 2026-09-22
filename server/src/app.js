@@ -2,6 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
+import { labsRouter } from './routes/labs.js';
 import { AppError } from './errors.js';
 
 //Builds the Express app. Keeping it separate from server.js for testing.
@@ -13,6 +14,7 @@ export function createApp() {
 
   app.use('/api/health', healthRouter);
   app.use('/api/auth', authRouter);
+  app.use('/api/labs', labsRouter);
 
   app.use('/api', (req, res) => {
     res.status(404).json({ error: { code: 'NOT_FOUND', message: 'No such endpoint.' } });
