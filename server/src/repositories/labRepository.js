@@ -47,7 +47,16 @@ export const LabRepository = {
     return result.rows[0] ?? null;
   },
 
-  //Deletes a lab, but only if the given manager owns it. 
+  //Removes a member from a lab. Returns false if they were not a member.
+  async removeMember(labId, userId) {
+    const result = await pool.query(
+      'DELETE FROM memberships WHERE lab_id = $1 AND user_id = $2',
+      [labId, userId],
+    );
+    return result.rowCount > 0;
+  },
+
+  //Deletes a lab, but only if the given manager owns it.
   async deleteOwnedBy(labId, ownerId) {
     const result = await pool.query(
       'DELETE FROM labs WHERE id = $1 AND owner_id = $2',

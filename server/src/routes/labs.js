@@ -47,3 +47,13 @@ labsRouter.post('/:id/members', requireAuth, requireRole('manager'), async (req,
   });
   res.status(201).json({ member });
 });
+
+//Removes a member from a lab the signed in manager owns.
+labsRouter.delete('/:id/members/:userId', requireAuth, requireRole('manager'), async (req, res) => {
+  await LabService.removeMember({
+    labId: req.params.id,
+    userId: req.params.userId,
+    ownerId: req.user.id,
+  });
+  res.status(204).end();
+});

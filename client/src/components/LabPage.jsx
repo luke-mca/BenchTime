@@ -73,6 +73,9 @@ function LabMembers({ labId }) {
   const [members, setMembers] = useState(null);
   const [error, setError] = useState('');
   const [adding, setAdding] = useState(false);
+  //The member currently being removed, so only that row's button goes quiet.
+  const [removingId, setRemovingId] = useState(null);
+  const [removeError, setRemoveError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -97,6 +100,21 @@ function LabMembers({ labId }) {
     setAdding(false);
   }
 
+  //Removing a member should only take away their access to this lab/equipment chart. 
+  async function handleRemove(member) {
+    setRemovingId(member.id);
+    setRemoveError(null);
+
+    try {
+      await api.removeMember(labId, member.id);
+      setMembers((current) => current.filter((added) => added.id !== member.id));
+    } catch (err) {
+      setRemoveError(err.status ? err.message : 'Something went wrong. Please try again.');
+    } finally {
+      setRemovingId(null);
+    }
+  }
+
   return (
     <>
       <div className="mt-6 flex items-center justify-between">
@@ -112,7 +130,18 @@ function LabMembers({ labId }) {
 
       {adding && <AddMemberForm labId={labId} onAdded={handleAdded} />}
 
-      <MemberList members={members} error={error} />
+      {removeError && (
+        <div className="mt-4">
+          <FormError id="remove-member-error" message={removeError} />
+        </div>
+      )}
+
+      <MemberList
+        members={members}
+        error={error}
+        onRemove={handleRemove}
+        removingId={removingId}
+      />
     </>
   );
 }
@@ -164,7 +193,7 @@ function AddMemberForm({ labId, onAdded }) {
   );
 }
 
-function MemberList({ members, error }) {
+function MemberList({ members, error, onRemove, removingId }) {
   if (error) {
     return (
       <div className="mt-4">
@@ -194,8 +223,19 @@ function MemberList({ members, error }) {
           className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3"
         >
           <span className="font-medium text-gray-900">{member.username}</span>
-          <span className="text-sm text-gray-500">
-            Added {new Date(member.addedAt).toLocaleDateString()}
+          <span className="flex items-center gap-3">
+            <span className="text-sm text-gray-500">
+              Added {new Date(member.addedAt).toLocaleDateString()}
+            </span>
+            <button
+              type="button"
+              onClick={() => onRemove(member)}
+              disabled={removingId === member.id}
+              aria-label={`Remove ${member.username}`}
+              className="rounded px-2 py-0.5 text-lg leading-none text-gray-400 hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-40"
+            >
+              ×
+            </button>
           </span>
         </li>
       ))}
