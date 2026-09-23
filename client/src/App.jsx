@@ -19,10 +19,11 @@ export default function App() {
             <Route path="/" element={<IndexPage />} />
             <Route path="/login" element={<LoginForm />} />
             <Route path="/register" element={<RegisterForm />} />
+            {/* Members and managers can both open labs*/}
             <Route
               path="/labs/:labId"
               element={
-                <RequireAuth role="manager">
+                <RequireAuth>
                   <LabPage />
                 </RequireAuth>
               }

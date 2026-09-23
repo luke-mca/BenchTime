@@ -66,9 +66,27 @@ export const LabService = {
     return toPublicLab(row);
   },
 
+  //Lists the labs a member has been added to. 
+  async listLabsForMember(userId) {
+    const rows = await LabRepository.listByMember(userId);
+    return rows.map(toPublicLab);
+  },
+
   //One lab, but only for the manager that owns it.
   async getLab({ labId, ownerId } = {}) {
     return toPublicLab(await findOwnedLabOrThrow(labId, ownerId));
+  },
+
+  //One lab but only for a member that has been added to it. 
+  async getLabForMember({ labId, userId } = {}) {
+    const id = parseId(labId);
+    const lab = id ? await LabRepository.findForMember(id, userId) : null;
+
+    if (!lab) {
+      throw new NotFoundError('That lab does not exist.');
+    }
+
+    return toPublicLab(lab);
   },
 
   //Deletes a lab the manager owns. The lab's members, equipment and reservations are deleted with it. 
