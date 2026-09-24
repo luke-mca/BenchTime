@@ -173,7 +173,12 @@ function CreateLabForm({ onCreated }) {
   );
 }
 
-//Shared by both roles. But the delete button for labs only appears for a lab manager. 
+//e.g. "1 member" or "3 members".
+function countLabel(count, singular, plural) {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+//Shared by both roles. But the delete button for labs only appears for a lab manager.
 function LabList({ labs, error, onDelete, deletingId, empty }) {
   if (error) {
     return <FormError id="labs-error" message={error} />;
@@ -198,12 +203,18 @@ function LabList({ labs, error, onDelete, deletingId, empty }) {
           key={lab.id}
           className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3"
         >
-          <Link
-            to={`/labs/${lab.id}`}
-            className="font-medium text-gray-900 hover:text-indigo-700 hover:underline"
-          >
-            {lab.name}
-          </Link>
+          <div>
+            <Link
+              to={`/labs/${lab.id}`}
+              className="font-medium text-gray-900 hover:text-indigo-700 hover:underline"
+            >
+              {lab.name}
+            </Link>
+            <p className="mt-0.5 text-sm text-gray-500">
+              {countLabel(lab.memberCount, 'member', 'members')} ·{' '}
+              {countLabel(lab.equipmentCount, 'piece of equipment', 'pieces of equipment')}
+            </p>
+          </div>
           <span className="flex items-center gap-3">
             <span className="text-sm text-gray-500">
               Created {new Date(lab.createdAt).toLocaleDateString()}

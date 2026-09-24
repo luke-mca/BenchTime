@@ -72,3 +72,18 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 
 ### Changed 
 - labRepository.js, labs.js, labService.js, Home.jsx, and LabPage.jsx to implement the above mentioned changes. 
+
+## [Unreleased]
+
+### Added 
+- equipmentRepository.js plus `GET /api/labs/:id/equipment` and `POST /api/labs/:id/equipment` so a manager can add equipment (name and optional description) to a lab they own (US-9, FR-5, FR-7).
+- Managers and the lab's members can view that lab's active equipment. Anyone else gets a not found error (US-3, FR-3).
+- `DELETE /api/labs/:id/equipment/:equipmentId` so a manager can remove equipment from a lab they own. This is a soft delete (`active = false`) so past reservations are kept for usage statistics (US-9, FR-7).
+- Migration 003 so a lab cannot have two active pieces of equipment with the same name. Removed equipment is left out so its name can be reused.
+
+- Lab cards on the home page show how many members and pieces of equipment each lab has.
+- The lab page shows who manages the lab, for both the manager and the lab's members.
+
+### Changed 
+- Every lab returned by the API now includes `ownerUsername`, `memberCount`, and `equipmentCount`.
+- labRepository.js, labService.js, labs.js, api.js, Home.jsx, and LabPage.jsx to implement the above mentioned changes. 
