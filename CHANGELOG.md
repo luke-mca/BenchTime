@@ -61,3 +61,14 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 
 ### Changed 
 - errors.js was updated with some more errors according to (NFR-6). 
+
+## [Unreleased]
+
+### Added 
+- Services, routes, and repository files so that a manager can add/delete members from a lab and so members can see the labs theyve been added to.
+- All of these were implemented with FR-3 and FR-9 in mind. 
+- The ability for managers to add members to the labs they own and remove them if needed. 
+- The ability for members to see the labs they have been added to and be taken to a page associated with each lab. 
+
+### Changed 
+- labRepository.js, labs.js, labService.js, Home.jsx, and LabPage.jsx to implement the above mentioned changes. 

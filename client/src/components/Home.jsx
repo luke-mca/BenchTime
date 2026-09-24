@@ -4,7 +4,6 @@ import { api } from '../lib/api.js';
 import { useAuth } from '../lib/AuthContext.jsx';
 import { FormError, FormField, SubmitButton } from './FormField.jsx';
 
-//What signed-in users see at "/". The member side is still a placeholder (US-2).
 const STATES = { IDLE: 'idle', SUBMITTING: 'submitting' };
 const ERROR_ID = 'create-lab-error';
 
@@ -19,12 +18,36 @@ export function Home() {
   );
 }
 
+//Makes it so that a member can see a similar list to the lab managerA(i.e. the labs they have been added to) 
+//but they cannot edit these. 
 function MemberLabs() {
+  const [labs, setLabs] = useState(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .listLabs()
+      .then(({ labs: joined }) => !cancelled && setLabs(joined))
+      .catch((err) => !cancelled && setError(err.message));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
-    <div className="mt-6 rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center">
-      <p className="text-gray-600">You haven't been added to any labs yet.</p>
-      <p className="mt-1 text-sm text-gray-500">Ask a lab manager to add you by your username.</p>
-    </div>
+    <LabList
+      labs={labs}
+      error={error}
+      empty={
+        <>
+          <p className="text-gray-600">You haven't been added to any labs yet.</p>
+          <p className="mt-1 text-sm text-gray-500">
+            Ask a lab manager to add you by your username.
+          </p>
+        </>
+      }
+    />
   );
 }
 
@@ -87,12 +110,22 @@ function ManagerLabs() {
         </div>
       )}
 
-      <LabList labs={labs} error={error} onDelete={handleDelete} deletingId={deletingId} />
+      <LabList
+        labs={labs}
+        error={error}
+        onDelete={handleDelete}
+        deletingId={deletingId}
+        empty={
+          <>
+            <p className="text-gray-600">You don't own any labs yet.</p>
+            <p className="mt-1 text-sm text-gray-500">Use Create lab to make your first one.</p>
+          </>
+        }
+      />
     </>
   );
 }
 
-//Calls POST /api/labs (US-7). 
 function CreateLabForm({ onCreated }) {
   const [status, setStatus] = useState(STATES.IDLE);
   const [name, setName] = useState('');
@@ -140,7 +173,8 @@ function CreateLabForm({ onCreated }) {
   );
 }
 
-function LabList({ labs, error, onDelete, deletingId }) {
+//Shared by both roles. But the delete button for labs only appears for a lab manager. 
+function LabList({ labs, error, onDelete, deletingId, empty }) {
   if (error) {
     return <FormError id="labs-error" message={error} />;
   }
@@ -152,8 +186,7 @@ function LabList({ labs, error, onDelete, deletingId }) {
   if (labs.length === 0) {
     return (
       <div className="mt-6 rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center">
-        <p className="text-gray-600">You don't own any labs yet.</p>
-        <p className="mt-1 text-sm text-gray-500">Use Create lab to make your first one.</p>
+        {empty}
       </div>
     );
   }
@@ -165,7 +198,6 @@ function LabList({ labs, error, onDelete, deletingId }) {
           key={lab.id}
           className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3"
         >
-          {/* Only the name is a link. Create page using the lab id.*/}
           <Link
             to={`/labs/${lab.id}`}
             className="font-medium text-gray-900 hover:text-indigo-700 hover:underline"
@@ -176,15 +208,17 @@ function LabList({ labs, error, onDelete, deletingId }) {
             <span className="text-sm text-gray-500">
               Created {new Date(lab.createdAt).toLocaleDateString()}
             </span>
-            <button
-              type="button"
-              onClick={() => onDelete(lab)}
-              disabled={deletingId === lab.id}
-              aria-label={`Delete ${lab.name}`}
-              className="rounded px-2 py-0.5 text-lg leading-none text-gray-400 hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-40"
-            >
-              ×
-            </button>
+            {onDelete && (
+              <button
+                type="button"
+                onClick={() => onDelete(lab)}
+                disabled={deletingId === lab.id}
+                aria-label={`Delete ${lab.name}`}
+                className="rounded px-2 py-0.5 text-lg leading-none text-gray-400 hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-40"
+              >
+                ×
+              </button>
+            )}
           </span>
         </li>
       ))}

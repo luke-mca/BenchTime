@@ -78,4 +78,9 @@ export const api = {
   deleteLab: (labId) => request(`/api/labs/${encodeURIComponent(labId)}`, { method: 'DELETE' }),
   listMembers: (labId) => request(`/api/labs/${encodeURIComponent(labId)}/members`),
   addMember: (labId, username) => post(`/api/labs/${encodeURIComponent(labId)}/members`, { username }),
+  removeMember: (labId, userId) =>
+    request(
+      `/api/labs/${encodeURIComponent(labId)}/members/${encodeURIComponent(userId)}`,
+      { method: 'DELETE' },
+    ),
 };

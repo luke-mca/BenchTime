@@ -6,9 +6,12 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 //Lab endpoints. All buisness logic lives in labService.js. 
 export const labsRouter = Router();
 
-//Lists the labs the signed in manager owns. Empty array if they have none yet.
-labsRouter.get('/', requireAuth, requireRole('manager'), async (req, res) => {
-  const labs = await LabService.listLabs(req.user.id);
+//Lists the caller's labs either the ones that a manager owns or the ones that a member has been added to. 
+labsRouter.get('/', requireAuth, async (req, res) => {
+  const labs =
+    req.user.role === 'manager'
+      ? await LabService.listLabs(req.user.id)
+      : await LabService.listLabsForMember(req.user.id);
   res.json({ labs });
 });
 
@@ -19,9 +22,12 @@ labsRouter.post('/', requireAuth, requireRole('manager'), async (req, res) => {
   res.status(201).json({ lab });
 });
 
-//Returns a single lab the signed in manager owns.
-labsRouter.get('/:id', requireAuth, requireRole('manager'), async (req, res) => {
-  const lab = await LabService.getLab({ labId: req.params.id, ownerId: req.user.id });
+//Returns a single lab for either a manager or a member
+labsRouter.get('/:id', requireAuth, async (req, res) => {
+  const lab =
+    req.user.role === 'manager'
+      ? await LabService.getLab({ labId: req.params.id, ownerId: req.user.id })
+      : await LabService.getLabForMember({ labId: req.params.id, userId: req.user.id });
   res.json({ lab });
 });
 
@@ -46,4 +52,14 @@ labsRouter.post('/:id/members', requireAuth, requireRole('manager'), async (req,
     ownerId: req.user.id,
   });
   res.status(201).json({ member });
+});
+
+//Removes a member from a lab the signed in manager owns.
+labsRouter.delete('/:id/members/:userId', requireAuth, requireRole('manager'), async (req, res) => {
+  await LabService.removeMember({
+    labId: req.params.id,
+    userId: req.params.userId,
+    ownerId: req.user.id,
+  });
+  res.status(204).end();
 });

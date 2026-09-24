@@ -17,14 +17,14 @@ export function toPublicMember(row) {
   return { id: String(row.id), username: row.username, addedAt: row.addedAt };
 }
 
-//Returns the id, or null if it is not a positive integer. Used for values from the sql table. 
-function parseLabId(value) {
+//Returns the id, or null if it is not a positive integer. Used for values from the sql table.
+function parseId(value) {
   return /^\d+$/.test(value) ? value : null;
 }
 
 //Every route that works inside a lab starts here.
 async function findOwnedLabOrThrow(labId, ownerId) {
-  const id = parseLabId(labId);
+  const id = parseId(labId);
   const lab = id ? await LabRepository.findOwnedBy(id, ownerId) : null;
 
   if (!lab) {
@@ -66,14 +66,32 @@ export const LabService = {
     return toPublicLab(row);
   },
 
+  //Lists the labs a member has been added to. 
+  async listLabsForMember(userId) {
+    const rows = await LabRepository.listByMember(userId);
+    return rows.map(toPublicLab);
+  },
+
   //One lab, but only for the manager that owns it.
   async getLab({ labId, ownerId } = {}) {
     return toPublicLab(await findOwnedLabOrThrow(labId, ownerId));
   },
 
+  //One lab but only for a member that has been added to it. 
+  async getLabForMember({ labId, userId } = {}) {
+    const id = parseId(labId);
+    const lab = id ? await LabRepository.findForMember(id, userId) : null;
+
+    if (!lab) {
+      throw new NotFoundError('That lab does not exist.');
+    }
+
+    return toPublicLab(lab);
+  },
+
   //Deletes a lab the manager owns. The lab's members, equipment and reservations are deleted with it. 
   async deleteLab({ labId, ownerId } = {}) {
-    const id = parseLabId(labId);
+    const id = parseId(labId);
     const deleted = id ? await LabRepository.deleteOwnedBy(id, ownerId) : false;
 
     if (!deleted) {
@@ -124,5 +142,17 @@ export const LabService = {
     }
     
     return toPublicMember({ id: user.id, username: user.username, addedAt: membership.addedAt });
+  },
+
+  //Removes a member from a lab the manager owns. The member keeps their account.
+  async removeMember({ labId, userId, ownerId } = {}) {
+    const lab = await findOwnedLabOrThrow(labId, ownerId);
+
+    const id = parseId(userId);
+    const removed = id ? await LabRepository.removeMember(lab.id, id) : false;
+
+    if (!removed) {
+      throw new NotFoundError('That member is not part of this lab.');
+    }
   },
 };

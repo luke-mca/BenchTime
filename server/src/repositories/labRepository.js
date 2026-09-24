@@ -1,7 +1,7 @@
 import { pool } from '../db/pool.js';
 
-//The only module that queries the labs and memberships tables directly.
 const COLUMNS = 'id, name, created_at AS "createdAt"';
+const MEMBER_COLUMNS = 'l.id, l.name, l.created_at AS "createdAt"';
 
 export const LabRepository = {
   //Lists every lab that a manager owns. 
@@ -18,6 +18,31 @@ export const LabRepository = {
     const result = await pool.query(
       `SELECT ${COLUMNS} FROM labs WHERE id = $1 AND owner_id = $2`,
       [labId, ownerId],
+    );
+    return result.rows[0] ?? null;
+  },
+
+  //Lists every lab a member has been added to.
+  async listByMember(userId) {
+    const result = await pool.query(
+      `SELECT ${MEMBER_COLUMNS}
+         FROM labs l
+         JOIN memberships m ON m.lab_id = l.id
+        WHERE m.user_id = $1
+        ORDER BY l.created_at DESC`,
+      [userId],
+    );
+    return result.rows;
+  },
+
+  //Loads a lab only if the given member has been added to it.
+  async findForMember(labId, userId) {
+    const result = await pool.query(
+      `SELECT ${MEMBER_COLUMNS}
+         FROM labs l
+         JOIN memberships m ON m.lab_id = l.id
+        WHERE l.id = $1 AND m.user_id = $2`,
+      [labId, userId],
     );
     return result.rows[0] ?? null;
   },
@@ -47,7 +72,16 @@ export const LabRepository = {
     return result.rows[0] ?? null;
   },
 
-  //Deletes a lab, but only if the given manager owns it. 
+  //Removes a member from a lab. Returns false if they were not a member.
+  async removeMember(labId, userId) {
+    const result = await pool.query(
+      'DELETE FROM memberships WHERE lab_id = $1 AND user_id = $2',
+      [labId, userId],
+    );
+    return result.rowCount > 0;
+  },
+
+  //Deletes a lab, but only if the given manager owns it.
   async deleteOwnedBy(labId, ownerId) {
     const result = await pool.query(
       'DELETE FROM labs WHERE id = $1 AND owner_id = $2',
