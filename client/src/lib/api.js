@@ -83,4 +83,13 @@ export const api = {
       `/api/labs/${encodeURIComponent(labId)}/members/${encodeURIComponent(userId)}`,
       { method: 'DELETE' },
     ),
+  //Equipment. Listing is open to the lab's manager and members; adding and removing are manager-only.
+  listEquipment: (labId) => request(`/api/labs/${encodeURIComponent(labId)}/equipment`),
+  addEquipment: (labId, { name, description }) =>
+    post(`/api/labs/${encodeURIComponent(labId)}/equipment`, { name, description }),
+  removeEquipment: (labId, equipmentId) =>
+    request(
+      `/api/labs/${encodeURIComponent(labId)}/equipment/${encodeURIComponent(equipmentId)}`,
+      { method: 'DELETE' },
+    ),
 };

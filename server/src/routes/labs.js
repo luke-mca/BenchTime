@@ -63,3 +63,35 @@ labsRouter.delete('/:id/members/:userId', requireAuth, requireRole('manager'), a
   });
   res.status(204).end();
 });
+
+//Lists the equipment in a lab for either the manager that owns it or a member that has been added to it.
+labsRouter.get('/:id/equipment', requireAuth, async (req, res) => {
+  const equipment = await LabService.listEquipment({
+    labId: req.params.id,
+    userId: req.user.id,
+    role: req.user.role,
+  });
+  res.json({ equipment });
+});
+
+//Adds a piece of equipment to a lab the signed in manager owns.
+labsRouter.post('/:id/equipment', requireAuth, requireRole('manager'), async (req, res) => {
+  const { name, description } = req.body ?? {};
+  const equipment = await LabService.addEquipment({
+    labId: req.params.id,
+    name,
+    description,
+    ownerId: req.user.id,
+  });
+  res.status(201).json({ equipment });
+});
+
+//Removes a piece of equipment from a lab the signed in manager owns. Past reservations are kept.
+labsRouter.delete('/:id/equipment/:equipmentId', requireAuth, requireRole('manager'), async (req, res) => {
+  await LabService.removeEquipment({
+    labId: req.params.id,
+    equipmentId: req.params.equipmentId,
+    ownerId: req.user.id,
+  });
+  res.status(204).end();
+});
