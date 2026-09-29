@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { LabService } from '../services/labService.js';
+import { ReservationService } from '../services/reservationService.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 
 //Relies on the token system provided in auth.js. 
@@ -92,6 +93,39 @@ labsRouter.delete('/:id/equipment/:equipmentId', requireAuth, requireRole('manag
     labId: req.params.id,
     equipmentId: req.params.equipmentId,
     ownerId: req.user.id,
+  });
+  res.status(204).end();
+});
+
+//Lists upcoming reservations for a piece of equipment, for the lab's manager or its members.
+labsRouter.get('/:id/equipment/:equipmentId/reservations', requireAuth, async (req, res) => {
+  const reservations = await ReservationService.listReservations({
+    labId: req.params.id,
+    equipmentId: req.params.equipmentId,
+    user: req.user,
+  });
+  res.json({ reservations });
+});
+
+//Reserves a piece of equipment. The lab's manager and its members can both reserve.
+labsRouter.post('/:id/equipment/:equipmentId/reservations', requireAuth, async (req, res) => {
+  const { startTime, endTime } = req.body ?? {};
+  const reservation = await ReservationService.createReservation({
+    labId: req.params.id,
+    equipmentId: req.params.equipmentId,
+    startTime,
+    endTime,
+    user: req.user,
+  });
+  res.status(201).json({ reservation });
+});
+
+//Cancels one of the signed in user's own reservations.
+labsRouter.delete('/:id/reservations/:reservationId', requireAuth, async (req, res) => {
+  await ReservationService.cancelReservation({
+    labId: req.params.id,
+    reservationId: req.params.reservationId,
+    user: req.user,
   });
   res.status(204).end();
 });

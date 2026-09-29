@@ -76,6 +76,8 @@ function LabEquipment({ labId, canAdd }) {
   //The equipment currently being removed, so only that row's button goes quiet.
   const [removingId, setRemovingId] = useState(null);
   const [removeError, setRemoveError] = useState(null);
+  //The equipment whose reservations are open. Only one is open at a time.
+  const [scheduleId, setScheduleId] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -143,11 +145,14 @@ function LabEquipment({ labId, canAdd }) {
       )}
 
       <EquipmentList
+        labId={labId}
         equipment={equipment}
         error={error}
         canAdd={canAdd}
         onRemove={canAdd ? handleRemove : null}
         removingId={removingId}
+        scheduleId={scheduleId}
+        onToggleSchedule={(item) => setScheduleId((open) => (open === item.id ? null : item.id))}
       />
     </>
   );
@@ -215,7 +220,16 @@ function AddEquipmentForm({ labId, onAdded }) {
   );
 }
 
-function EquipmentList({ equipment, error, canAdd, onRemove, removingId }) {
+function EquipmentList({
+  labId,
+  equipment,
+  error,
+  canAdd,
+  onRemove,
+  removingId,
+  scheduleId,
+  onToggleSchedule,
+}) {
   if (error) {
     return (
       <div className="mt-4">
@@ -242,27 +256,273 @@ function EquipmentList({ equipment, error, canAdd, onRemove, removingId }) {
   return (
     <ul className="mt-4 space-y-2">
       {equipment.map((item) => (
-        <li
-          key={item.id}
-          className="flex items-start justify-between gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3"
-        >
-          <div>
-            <p className="font-medium text-gray-900">{item.name}</p>
-            {item.description && (
-              <p className="mt-1 whitespace-pre-line text-sm text-gray-600">{item.description}</p>
-            )}
+        <li key={item.id} className="rounded-lg border border-gray-200 bg-white px-4 py-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-medium text-gray-900">{item.name}</p>
+              {item.description && (
+                <p className="mt-1 whitespace-pre-line text-sm text-gray-600">{item.description}</p>
+              )}
+            </div>
+            <span className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onToggleSchedule(item)}
+                aria-expanded={scheduleId === item.id}
+                className="whitespace-nowrap rounded px-2 py-1 text-sm font-medium text-indigo-600 hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              >
+                {scheduleId === item.id ? 'Hide schedule' : 'Reserve'}
+              </button>
+              {onRemove && (
+                <button
+                  type="button"
+                  onClick={() => onRemove(item)}
+                  disabled={removingId === item.id}
+                  aria-label={`Remove ${item.name}`}
+                  className="rounded px-2 py-0.5 text-lg leading-none text-gray-400 hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-40"
+                >
+                  ×
+                </button>
+              )}
+            </span>
           </div>
-          {onRemove && (
-            <button
-              type="button"
-              onClick={() => onRemove(item)}
-              disabled={removingId === item.id}
-              aria-label={`Remove ${item.name}`}
-              className="rounded px-2 py-0.5 text-lg leading-none text-gray-400 hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-40"
-            >
-              ×
-            </button>
-          )}
+
+          {scheduleId === item.id && <EquipmentReservations labId={labId} equipment={item} />}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+//Formats a Date as the local "YYYY-MM-DDTHH:mm" value a datetime-local input expects.
+function toLocalInputValue(date) {
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+//Converts a datetime-local value to UTC for the server. Empty values are left for the server to reject.
+function toIsoOrUndefined(value) {
+  return value ? new Date(value).toISOString() : undefined;
+}
+
+//"Oct 3, 2026, 9:00 AM – 11:00 AM", repeating the date only when the reservation crosses midnight.
+function formatRange(startTime, endTime) {
+  const start = new Date(startTime);
+  const end = new Date(endTime);
+  const full = { dateStyle: 'medium', timeStyle: 'short' };
+  const endText =
+    start.toDateString() === end.toDateString()
+      ? end.toLocaleTimeString([], { timeStyle: 'short' })
+      : end.toLocaleString([], full);
+  return `${start.toLocaleString([], full)} – ${endText}`;
+}
+
+//The schedule and booking form for one piece of equipment, opened from its Reserve button.
+function EquipmentReservations({ labId, equipment }) {
+  const [reservations, setReservations] = useState(null);
+  const [error, setError] = useState('');
+  //Bumped to fetch the list again, e.g. after someone else took the slot we tried to book.
+  const [reloadKey, setReloadKey] = useState(0);
+  const [cancellingId, setCancellingId] = useState(null);
+  const [cancelError, setCancelError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setError('');
+
+    api
+      .listReservations(labId, equipment.id)
+      .then(({ reservations: current }) => !cancelled && setReservations(current))
+      .catch((err) => !cancelled && setError(err.message));
+
+    return () => {
+      cancelled = true;
+    };
+  }, [labId, equipment.id, reloadKey]);
+
+  //Kept sorted by start time so the list matches the order the server returns.
+  function handleReserved(reservation) {
+    setReservations((current) =>
+      [...(current ?? []), reservation].sort(
+        (a, b) => new Date(a.startTime) - new Date(b.startTime),
+      ),
+    );
+  }
+
+  async function handleCancel(reservation) {
+    setCancellingId(reservation.id);
+    setCancelError(null);
+
+    try {
+      await api.cancelReservation(labId, reservation.id);
+      setReservations((current) => current.filter((existing) => existing.id !== reservation.id));
+    } catch (err) {
+      setCancelError(err.status ? err.message : 'Something went wrong. Please try again.');
+    } finally {
+      setCancellingId(null);
+    }
+  }
+
+  return (
+    <div className="mt-3 space-y-4 border-t border-gray-100 pt-3">
+      <div>
+        <h3 className="text-sm font-semibold text-gray-700">Upcoming reservations</h3>
+
+        {cancelError && (
+          <div className="mt-2">
+            <FormError id={`cancel-reservation-error-${equipment.id}`} message={cancelError} />
+          </div>
+        )}
+
+        <ReservationList
+          reservations={reservations}
+          error={error}
+          onCancel={handleCancel}
+          cancellingId={cancellingId}
+        />
+      </div>
+
+      <ReservationForm
+        labId={labId}
+        equipment={equipment}
+        onReserved={handleReserved}
+        onConflict={() => setReloadKey((key) => key + 1)}
+      />
+    </div>
+  );
+}
+
+function ReservationForm({ labId, equipment, onReserved, onConflict }) {
+  const [status, setStatus] = useState(STATES.IDLE);
+  const [start, setStart] = useState('');
+  const [end, setEnd] = useState('');
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const errorElementId = `reservation-error-${equipment.id}`;
+  const errorId = errorMessage ? errorElementId : undefined;
+  const now = toLocalInputValue(new Date());
+
+  //Suggests a one hour slot when the start is picked first.
+  function handleStartChange(value) {
+    setStart(value);
+    if (value && !end) {
+      setEnd(toLocalInputValue(new Date(new Date(value).getTime() + 60 * 60 * 1000)));
+    }
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setStatus(STATES.SUBMITTING);
+    setErrorMessage(null);
+
+    try {
+      const { reservation } = await api.createReservation(labId, equipment.id, {
+        startTime: toIsoOrUndefined(start),
+        endTime: toIsoOrUndefined(end),
+      });
+      onReserved(reservation);
+      setStart('');
+      setEnd('');
+    } catch (error) {
+      setErrorMessage(error.status ? error.message : 'Something went wrong. Please try again.');
+      //Someone else booked that time, so show the latest schedule.
+      if (error.code === 'RESERVATION_OVERLAP') onConflict();
+    } finally {
+      setStatus(STATES.IDLE);
+    }
+  }
+
+  return (
+    <form className="space-y-3" onSubmit={handleSubmit} noValidate>
+      <h3 className="text-sm font-semibold text-gray-700">Reserve {equipment.name}</h3>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <FormField
+          id={`reservation-start-${equipment.id}`}
+          label="Start"
+          type="datetime-local"
+          value={start}
+          min={now}
+          onChange={(e) => handleStartChange(e.target.value)}
+          errorId={errorId}
+          required
+        />
+        <FormField
+          id={`reservation-end-${equipment.id}`}
+          label="End"
+          type="datetime-local"
+          value={end}
+          min={start || now}
+          onChange={(e) => setEnd(e.target.value)}
+          errorId={errorId}
+          required
+        />
+      </div>
+      <p className="text-xs text-gray-500">Reservations can be up to 6 hours long.</p>
+
+      <FormError id={errorElementId} message={errorMessage} />
+
+      <SubmitButton busy={status === STATES.SUBMITTING} busyLabel="Reserving…">
+        Reserve
+      </SubmitButton>
+    </form>
+  );
+}
+
+function ReservationList({ reservations, error, onCancel, cancellingId }) {
+  //The reservation whose Cancel was clicked once. A second click on Confirm actually cancels it.
+  const [confirmingId, setConfirmingId] = useState(null);
+
+  if (error) {
+    return (
+      <div className="mt-2">
+        <FormError id="reservations-error" message={error} />
+      </div>
+    );
+  }
+
+  if (reservations === null) {
+    return <p className="mt-2 text-sm text-gray-500">Loading…</p>;
+  }
+
+  if (reservations.length === 0) {
+    return <p className="mt-2 text-sm text-gray-500">No upcoming reservations. Every time is open.</p>;
+  }
+
+  return (
+    <ul className="mt-2 divide-y divide-gray-100 text-sm">
+      {reservations.map((reservation) => (
+        <li key={reservation.id} className="flex items-center justify-between gap-3 py-2">
+          <span className="text-gray-900">
+            {formatRange(reservation.startTime, reservation.endTime)}
+          </span>
+          <span className="flex items-center gap-3">
+            <span className={reservation.isMine ? 'font-medium text-indigo-700' : 'text-gray-600'}>
+              {reservation.isMine ? 'You' : reservation.username}
+            </span>
+            {reservation.isMine &&
+              (confirmingId === reservation.id ? (
+                <button
+                  type="button"
+                  onClick={() => onCancel(reservation)}
+                  //Clicking or tabbing away backs out of the confirm.
+                  onBlur={() => setConfirmingId(null)}
+                  disabled={cancellingId === reservation.id}
+                  autoFocus
+                  className="w-20 rounded bg-red-600 py-0.5 text-center text-sm text-white hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-40"
+                >
+                  Confirm
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmingId(reservation.id)}
+                  className="w-20 rounded py-0.5 text-center text-sm text-gray-500 hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                >
+                  Cancel
+                </button>
+              ))}
+          </span>
         </li>
       ))}
     </ul>

@@ -71,7 +71,7 @@ export const api = {
   logout: () => post('/api/auth/logout'),
   me: () => request('/api/auth/me'),
 
-  //Labs. Every one of these is manager-only on the server. 
+  //Labs. Listing and viewing are open to the lab's manager and members; everything else is manager-only.
   listLabs: () => request('/api/labs'),
   getLab: (labId) => request(`/api/labs/${encodeURIComponent(labId)}`),
   createLab: (name) => post('/api/labs', { name }),
@@ -90,6 +90,21 @@ export const api = {
   removeEquipment: (labId, equipmentId) =>
     request(
       `/api/labs/${encodeURIComponent(labId)}/equipment/${encodeURIComponent(equipmentId)}`,
+      { method: 'DELETE' },
+    ),
+  //Reservations. Open to the lab's manager and members; only your own reservations can be cancelled.
+  listReservations: (labId, equipmentId) =>
+    request(
+      `/api/labs/${encodeURIComponent(labId)}/equipment/${encodeURIComponent(equipmentId)}/reservations`,
+    ),
+  createReservation: (labId, equipmentId, { startTime, endTime }) =>
+    post(
+      `/api/labs/${encodeURIComponent(labId)}/equipment/${encodeURIComponent(equipmentId)}/reservations`,
+      { startTime, endTime },
+    ),
+  cancelReservation: (labId, reservationId) =>
+    request(
+      `/api/labs/${encodeURIComponent(labId)}/reservations/${encodeURIComponent(reservationId)}`,
       { method: 'DELETE' },
     ),
 };
