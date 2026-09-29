@@ -12,6 +12,15 @@ export const EquipmentRepository = {
     return result.rows;
   },
 
+  //Finds one piece of active equipment in a lab, or null.
+  async findActiveInLab(labId, equipmentId) {
+    const result = await pool.query(
+      `SELECT ${COLUMNS} FROM equipment WHERE id = $1 AND lab_id = $2 AND active`,
+      [equipmentId, labId],
+    );
+    return result.rows[0] ?? null;
+  },
+
   //Adds a piece of equipment to a lab. Returns the new equipment.
   async create({ labId, name, description }) {
     const result = await pool.query(

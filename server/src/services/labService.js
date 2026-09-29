@@ -39,7 +39,7 @@ export function toPublicEquipment(row) {
 }
 
 //Returns the id, or null if it is not a positive integer. Used for values from the sql table.
-function parseId(value) {
+export function parseId(value) {
   return /^\d+$/.test(value) ? value : null;
 }
 
@@ -65,6 +65,13 @@ async function findMemberLabOrThrow(labId, userId) {
   }
 
   return lab;
+}
+
+//Finds a lab the user can work in. Managers must own it and members must have been added to it.
+export async function findAccessibleLabOrThrow(labId, user) {
+  return user.role === 'manager'
+    ? findOwnedLabOrThrow(labId, user.id)
+    : findMemberLabOrThrow(labId, user.id);
 }
 
 export const LabService = {
