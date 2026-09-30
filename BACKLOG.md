@@ -1,6 +1,6 @@
 # BenchTime — Prioritized Backlog
 
-Last updated: 2026-09-02 (Milestone 0)
+Last updated: 2026-09-29 (Milestone 1)
 
 ## How this backlog works
 
@@ -12,7 +12,7 @@ Priority levels:
 | **Medium** | Improves the product substantially: target Milestone 2 |
 | **Low** | Valuable, added if time allows: Milestone 3 |
 
-Points are on a 1–5 scale and estimate **complexity**, not elapsed time.
+Points are on a 1–5 scale and estimate **complexity** and not elapsed time.
 
 Items are worked top to bottom. Each story becomes a GitHub Issue with its acceptance criteria
 copied in before anyone starts on it, and is closed only when it meets the Definition of Done
@@ -31,7 +31,7 @@ in the [README](README.md#development-process).
 **Acceptance criteria**
 - A prospective member can reach a sign-up page and register as a member.
 - Sign-up requires a username unique across *all* users (members and managers) and a password.
-- The account is persisted to the database so it can be retrieved later.
+- The account is stored in a database so it can be retrieved later.
 - The password is stored as a hash, never plaintext (NFR-2).
 - A duplicate username is rejected with a message saying why (NFR-6).
 
@@ -46,8 +46,8 @@ in the [README](README.md#development-process).
 **Acceptance criteria**
 - A prospective lab manager can reach the sign-up page and register with the manager role.
 - Sign-up requires a username unique across all users and a password.
-- The account and its role are persisted to the database.
-- Signing in as a manager grants manager permissions; role is enforced on the server.
+- The account and its role are stored in a database.
+- Signing in as a manager grants manager permissions and their role is enforced on the server.
 
 **Requirements:** FR-1, FR-2, FR-3, NFR-2
 
@@ -59,7 +59,7 @@ in the [README](README.md#development-process).
 
 **Acceptance criteria**
 - A signed-in manager can create a new lab and give it a name.
-- The lab is persisted and linked to its manager owner.
+- The lab is stored in a database and linked to its manager owner.
 - After creation the manager is taken to the new lab, where US-8 and US-9 apply.
 - Members cannot create labs; the server rejects the attempt.
 
@@ -75,8 +75,8 @@ in the [README](README.md#development-process).
 - A manager can view a lab they created and add a piece of equipment with a name and description.
 - A manager can remove equipment from that lab.
 - Removal is a **soft delete** so historical reservations survive for usage statistics.
-- Changes are persisted and linked to that specific lab.
-- Only the owning manager can add or remove equipment, enforced server-side.
+- Changes are stored in a database and linked to that specific lab.
+- Only the lab manager can add or remove equipment, enforced server-side.
 
 **Requirements:** FR-3, FR-5, FR-7
 
@@ -88,7 +88,7 @@ in the [README](README.md#development-process).
 
 **Acceptance criteria**
 - A manager can view a lab they own and add a member to it by username.
-- The membership is persisted so it can be retrieved later.
+- The membership is stored in a database so it can be retrieved later.
 - An unknown username is rejected with a message saying why.
 - Only the owning manager can add members.
 
@@ -103,8 +103,7 @@ in the [README](README.md#development-process).
 **Acceptance criteria**
 - After being added, the lab appears in the member's list of labs on sign-in.
 - The member can then use US-3 and US-4 within that lab.
-- A member cannot see or reach a lab they have no membership in — enforced on the server, not
-  by hiding UI.
+- A member cannot see or reach a lab they have no membership in. 
 
 **Requirements:** FR-3, FR-9
 
@@ -139,24 +138,39 @@ in the [README](README.md#development-process).
 
 **Requirements:** FR-3, FR-4, FR-8, NFR-5, NFR-6
 
----
-
-## Medium priority (Milestone 2)
-
-Acceptance criteria for these are written before the sprint that picks them up.
-
 ### US-5 — Cancel my own reservation · 2 pts
 > As a member, I want to cancel a reservation I no longer need so that someone else can reserve
 > during that time.
+
+**Acceptance criteria**
+- A member can cancel any reservation they have previously made. 
+- This cancelation is now visible for other users. 
+- Other users can now make a reservation that overlaps with the canceled one. 
+
+**Requirements:** FR-3, FR-4, FR-10, NFR-5
+---
+
+## Medium priority (Milestone 2)
 
 ### US-10 — Manager edits reservations in their labs · 3 pts
 > As a lab manager, I want to edit the reservations under the equipment calendars I own so that
 > I can resolve conflicts and misuse.
 
+**Acceptance criteria**
+- A manager can edit anyone's reservation(not just their own). 
+- These edits will appear for all users. 
+
+**Requirements:** FR-3, FR-11
+
 ### US-11 — Utilization statistics · 5 pts
 > As a manager, I want to view utilization statistics for every piece of equipment so that I can
 > make informed decisions about purchases and maintenance.
 
+**Acceptance criteria**
+- For every piece of equipment, the manager can view utilization statistics. 
+- These statistics include: how long the piece of equipment was reserved in a week, how often it was reserved, and when it was normally reserved. 
+
+**Requirements:** FR-3, FR-12, FR-13
 ---
 
 ## Low priority (Milestone 3, if time allows)
@@ -192,13 +206,17 @@ Acceptance criteria for these are written before the sprint that picks them up.
 | --- | --- |
 | FR-1 | The system shall allow member/lab manager registration with a unique username and password. |
 | FR-2 | The system shall authenticate users by username and password. |
-| FR-3 | The system shall support two roles — member and lab manager — and shall enforce role permissions for every operation. |
+| FR-3 | The system shall support two roles: member and lab manager and shall enforce role permissions for every operation. |
 | FR-4 | The system shall restrict modification (creation and cancellation) of a reservation to its member owner and the lab manager. |
 | FR-5 | The system shall maintain a list of equipment linked to every lab. |
 | FR-6 | The system shall maintain a list of labs linked to their lab manager owner. |
 | FR-7 | The system shall allow managers to add and remove equipment from their labs. |
 | FR-8 | The system shall allow an authenticated member to reserve a time slot for a specific piece of equipment. |
 | FR-9 | The system shall allow a lab manager to add a member to a lab they own. |
+| FR-10| The system shall allow a user to cancel their own equipment reservations. |
+| FR-11| The system shall allow a lab manager to edit equipment reservations created by any user under their own lab(not just their own). | 
+| FR-12| The system shall store utilization statistics for every piece of equipment. | 
+| FR-13| The system shall allow a lab manager to view utilization statistics for every piece of equipment in their lab. |
 
 ### Non-functional
 
@@ -215,11 +233,10 @@ Acceptance criteria for these are written before the sprint that picks them up.
 
 ## Risk register
 
-Reviewed and updated at the end of each sprint.
-
 | Risk | Type | Impact | Mitigation |
 | --- | --- | --- | --- |
 | Two people book the same equipment at the same time | Technical | High | PostgreSQL exclusion constraint rejects the overlap at the database level (INF-4) |
-| Midterms and fall break fall near milestone deadlines | Schedule | Medium | Plan ahead and front-load work so nothing is crammed at the end |
-| A user reaches a lab they are not a member of | Security | High | Every endpoint checks permissions server-side; client-side hiding is never the control |
+| Midterms and fall break fall near milestone deadlines | Schedule | Medium | Plan ahead and schedule work so nothing is crammed at the end |
+| A user reaches a lab they are not a member of | Security | High | Every endpoint checks permissions server-side so the client is never in control of these checks |
 | A bad migration corrupts the database | Data | High | Test every migration locally before it merges |
+| Users can abuse the system(making too many reservations on purpose) | Data | High | Allow manager to edit member's reservations|
