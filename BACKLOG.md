@@ -24,7 +24,7 @@ in the [README](README.md#development-process).
 
 ## High priority — MVP (Milestone 1)
 
-### US-1 — Member registration · 5 pts
+### US-1 — Member registration · 5 pts(Done)
 > As a prospective member, I want to register as a member with a unique username and password
 > so that I can begin reserving equipment.
 
@@ -39,7 +39,7 @@ in the [README](README.md#development-process).
 
 ---
 
-### US-6 — Lab manager registration · 5 pts
+### US-6 — Lab manager registration · 5 pts(Done)
 > As a prospective lab manager, I want to register as a lab manager with a unique username and
 > password so that I can begin managing equipment.
 
@@ -53,7 +53,7 @@ in the [README](README.md#development-process).
 
 ---
 
-### US-7 — Create an equipment calendar · 3 pts
+### US-7 — Create an equipment calendar · 3 pts(Done)
 > As a lab manager, I want to create an equipment calendar so that I can begin inviting members
 > to make reservations.
 
@@ -67,7 +67,7 @@ in the [README](README.md#development-process).
 
 ---
 
-### US-9 — Add and remove equipment · 4 pts
+### US-9 — Add and remove equipment · 4 pts(Done)
 > As a lab manager, I want to add and remove equipment from my equipment calendar so members can
 > make reservations.
 
@@ -82,7 +82,7 @@ in the [README](README.md#development-process).
 
 ---
 
-### US-8 — Add members to a lab · 3 pts
+### US-8 — Add members to a lab · 3 pts(Done)
 > As a lab manager, I want to invite members to an equipment calendar so that they can begin
 > making reservations.
 
@@ -96,7 +96,7 @@ in the [README](README.md#development-process).
 
 ---
 
-### US-2 — Member is added to a lab · 3 pts
+### US-2 — Member is added to a lab · 3 pts(Done)
 > As a member, I want to be added to an equipment calendar by a lab manager so I can begin
 > reserving equipment.
 
@@ -109,7 +109,7 @@ in the [README](README.md#development-process).
 
 ---
 
-### US-3 — View equipment in a lab · 3 pts
+### US-3 — View equipment in a lab · 3 pts(Done)
 > As a member, I want to see all available machines in a given equipment calendar.
 
 **Acceptance criteria**
@@ -122,7 +122,7 @@ in the [README](README.md#development-process).
 
 ---
 
-### US-4 — Reserve equipment · 4 pts
+### US-4 — Reserve equipment · 4 pts(Done)
 > As a member, I want to reserve a piece of equipment during an open time slot so that it is
 > reserved for me when I arrive.
 
@@ -138,7 +138,7 @@ in the [README](README.md#development-process).
 
 **Requirements:** FR-3, FR-4, FR-8, NFR-5, NFR-6
 
-### US-5 — Cancel my own reservation · 2 pts
+### US-5 — Cancel my own reservation · 2 pts(Done)
 > As a member, I want to cancel a reservation I no longer need so that someone else can reserve
 > during that time.
 
@@ -152,7 +152,7 @@ in the [README](README.md#development-process).
 
 ## Medium priority (Milestone 2)
 
-### US-10 — Manager edits reservations in their labs · 3 pts
+### US-10 — Manager edits reservations in their labs · 3 pts(In progress once milestone 2 starts)
 > As a lab manager, I want to edit the reservations under the equipment calendars I own so that
 > I can resolve conflicts and misuse.
 
@@ -162,7 +162,7 @@ in the [README](README.md#development-process).
 
 **Requirements:** FR-3, FR-11
 
-### US-11 — Utilization statistics · 5 pts
+### US-11 — Utilization statistics · 5 pts(In progress once milestone 2 starts)
 > As a manager, I want to view utilization statistics for every piece of equipment so that I can
 > make informed decisions about purchases and maintenance.
 
