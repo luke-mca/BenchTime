@@ -1,11 +1,10 @@
 # BenchTime — Initial Architecture
 
-Milestone 0 · 2026-09-02. Revised for Milestone 1 alongside the wireframes and the ADR.
+Milestone 1 · 2026-09-29. Revised for Milestone 1 alongside the wireframes and the ADR.
 
 ## System context
 
-BenchTime has no external datasets, APIs, or hardware dependencies. University SSO is post-MVP
-(US-13) and depends on access we do not have yet.
+BenchTime has no external datasets, APIs, or hardware dependencies. 
 
 ```mermaid
 graph TB
@@ -16,24 +15,19 @@ graph TB
         app["<b>BenchTime Web Application</b><br/>Role-based shared equipment calendar"]
     end
 
-    sso["<b>University SSO</b><br/>Post-MVP, US-13"]
-
     member -->|"Views labs and equipment,<br/>books and cancels<br/>own reservations"| app
     manager -->|"Creates labs, registers equipment,<br/>adds members, removes reservations,<br/>views statistics"| app
-    app -.->|"Optional: authenticate<br/>with university account"| sso
 
     classDef person fill:#2d5a8c,stroke:#1a3757,color:#fff
     classDef system fill:#3d7ab8,stroke:#25567f,color:#fff
-    classDef future fill:#8a8a8a,stroke:#5c5c5c,color:#fff,stroke-dasharray:4 3
     class member,manager person
     class app system
-    class sso future
 ```
 
-## Containers
+## Architecture Overview
 
 Three-tier client–server. Only the backend touches the database, every permission check happens
-on the server, and the overlap rule is enforced by the database rather than by application code.
+on the server. 
 
 ```mermaid
 graph TB
@@ -53,65 +47,91 @@ graph TB
     class db d
 ```
 
-## Data model
+## Layer responsibilities/API(Behavhior)
+
+Each request crosses three layers with a some strict rules: **routes should never contain business rules and
+repositories should never contain permission checks.** This is to prevent overlapping resposibilities.
+
+```mermaid
+graph TB
+    subgraph boundary["Boundary"]
+        routes["routes/auth.js · routes/labs.js<br/>Parse body and params, set status codes"]
+        mw["middleware/auth.js<br/>requireAuth · requireRole"]
+    end
+
+    subgraph control["Server(exposes different services the client can access)"]
+        authsvc["AuthService<br/>Validation, hashing, credential checks"]
+        labsvc["LabService<br/>Ownership, membership rules, name rules"]
+        toksvc["TokenService<br/>Issue and verify JWTs"]
+    end
+
+    subgraph entity["Database/Repository Using SQL"]
+        repos["UserRepository · LabRepository<br/>The only modules that query"]
+        db[("PostgreSQL<br/>Database constraints here are the final guard against errors")]
+    end
+
+    routes --> mw
+    mw --> authsvc
+    mw --> labsvc
+    authsvc --> toksvc
+    authsvc --> repos
+    labsvc --> repos
+    repos --> db
+
+    classDef b fill:#3d7ab8,stroke:#25567f,color:#fff
+    classDef c fill:#2d5a8c,stroke:#1a3757,color:#fff
+    classDef e fill:#1f4266,stroke:#12283d,color:#fff
+    class routes,mw b
+    class authsvc,labsvc,toksvc c
+    class repos,db e
+```
+
+Two checks always happen in this order for anything inside a lab to change: first the user must be authenticated(done with JWT) then the lab must verify what permissions they have access to(differs depending on if they are a manager or a member). `findOwnedLabOrThrow` runs before any member operation, which is why a manager cannot add members to somebody else's lab even though they hold the `manager` role. 
+
+## Data model/flow
 
 ```mermaid
 erDiagram
     USER ||--o{ LAB : "owns"
     USER ||--o{ MEMBERSHIP : "has"
-    USER ||--o{ RESERVATION : "books"
-    LAB  ||--o{ MEMBERSHIP : "grants"
+    USER ||--o{ RESERVATION : "creates"
+    LAB  ||--o{ MEMBERSHIP : "checks"
     LAB  ||--o{ EQUIPMENT : "contains"
-    EQUIPMENT ||--o{ RESERVATION : "is booked by"
+    EQUIPMENT ||--o{ RESERVATION : "has"
 
     USER {
-        int id PK
-        string username UK
-        string password_hash
-        string role "member | manager"
+        bigint id PK
+        text username UK "unique on lower(username)"
+        text password_hash
+        text role "member | manager"
+        timestamptz created_at
     }
     LAB {
-        int id PK
-        string name
-        int owner_id FK
+        bigint id PK
+        text name "unique for an owner"
+        bigint owner_id FK
+        timestamptz created_at
     }
     MEMBERSHIP {
-        int id PK
-        int lab_id FK
-        int user_id FK
+        bigint id PK
+        bigint lab_id FK
+        bigint user_id FK
+        timestamptz created_at
     }
     EQUIPMENT {
-        int id PK
-        string name
-        string description
-        int lab_id FK
-        bool active "false = soft deleted"
+        bigint id PK
+        text name
+        text description
+        bigint lab_id FK
+        boolean active "false = deactivated by a manager"
+        timestamptz created_at
     }
     RESERVATION {
-        int id PK
-        int equipment_id FK
-        int user_id FK
+        bigint id PK
+        bigint equipment_id FK
+        bigint user_id FK
         timestamptz start_time
         timestamptz end_time
+        timestamptz created_at
     }
 ```
-
-A lab is an equipment calendar owned by exactly one manager and a membership can grant a
-member access to it. Equipment removal is only a soft delete so old reservations stay intact for the
-usage statistics planned after the MVP.
-
-## The overlap guarantee
-
-Checking in application code is not good enough so this will also be enforced in sql. 
-
-```sql
-CREATE EXTENSION IF NOT EXISTS btree_gist;
-
-ALTER TABLE reservation ADD CONSTRAINT no_overlapping_reservations
-  EXCLUDE USING gist (
-    equipment_id WITH =,
-    tstzrange(start_time, end_time) WITH &&
-  );
-```
-
-The API still validates and returns a readable error (NFR-6). 
