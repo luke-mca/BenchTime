@@ -70,6 +70,14 @@ A task is considered done when it does what the issue asked, has been reviewed a
 request, has tests and the suite passes(if applicable), and the app still runs from a fresh clone using the
 instructions above.
 
+## Definition of Done 
+This definition of done has been taken from milestone 0 and modified to reflect the changes we plan to make while working on milestone 2. Our definition of done is that a task is not finished until:
+- It does what the issue asked and we have tested it in a running version. 
+- It has been reviewed and merged into main through a pull request. Since we are a group of two people, code review will be done by the other person. Any conflicts here will relay the task being finished until an agreement is reached. 
+- It has tests, and the whole test suite still passes. “Passes” here means passing the automated testing via a CI/CD pipeline and not the manual testing done for milestone 1. 
+- The app still runs from a fresh clone using the setup instructions in the README. This will be done using the CI/CD pipeline. 
+
+
 ## Contribution statements — Milestone 0
 
 **Luke McArthur** — Wrote the initial design and architecture, data model, agile development
