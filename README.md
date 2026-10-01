@@ -11,7 +11,7 @@ Luke McArthur (lgmcarthur@crimson.ua.edu) · Jesse Seidel (jpseidel@crimson.ua.e
 
 ## Status
 
-Mileston 1 has begun. Scaffolding has been implemented. Has a basic webpage for viewing a health endpoint. 
+Milestone 1 has been finished. Tasks considered vital to the MVP have been completed. See BACKLOG.md for details. 
 
 ## Stack
 
@@ -21,34 +21,60 @@ server. See [docs/architecture.md](docs/architecture.md) for the diagrams and da
 
 ## Getting started
 
-**Prerequisites:** Node.js 20+, npm, PostgreSQL 16+, postgrator. 
+### Required Software 
+- Node.js: versions 24.19.0
+- npm: version 11.17 
+- PostgreSQL: version 18. 
+- pgAdmin 4 : version 9.17. NOTE: This is not required, but is useful for viewing the SQL tables. 
+- NOTE: Slightly older/newer versions of the above software should work, but those versions were specifically tested.
 
-```bash
-git clone https://github.com/luke-mca/BenchTime.git
-cd BenchTime
+### Create the Database
+```bash 
+#Clone the repo 
+git clone https://github.com/luke-mca/BenchTime
+cd BenchTime 
+```
+- NOTE: the command CREATE DATABSE [your database name] should create the db using postgreSQL directly if you do not want to use pgAdmin. Just make sure the database can communicate on a port(default is 5432) and you have its URL(see .env.example for details). 
+- Open pgAdmin 4. 
+- Right click on your server(or create one under the main server group if needed). 
+- Click Create then Database. 
+- Give the database a name and make sure its exposed on a port so it can communicate with the BenchTime server. 
+- Make sure the database is running when you run the BenchTime server. 
 
-# Server
-cd server
-cp .env.example .env      # then fill in all the fields. 
-npm install
-npm run migrate           # make sure your sql database is running. 
-npm run dev               # http://localhost:3000
+### Configure the server/.env file. 
+```bash 
+cd server 
+#If this does not work just copy .env.example manually and rename it .env. 
+cp .env.example .env 
+```
+- Fill out the .env file according to the comments. 
 
-# Client (second terminal)
-cd client
-npm install
-npm run dev               # http://localhost:5173(open this in your browser). 
+### Install Depdendencies 
+```bash 
+#This should install all dependencies to run both the client and the server. 
+cd server && npm install 
+cd ../client && npm install 
 ```
 
-Configuration comes from a `.env` file that is never committed. `.env.example` documents every
-variable.
-
-### Tests
-
-```bash
-cd server && npm test
-cd client && npm test
+### Database Migration 
+```bash 
+cd server/scripts 
+npm run migrate
 ```
+- This will place all of the necessary tables in your SQL database. NOTE: This requires a valid database URL in your .env file. 
+
+### Run the app 
+```bash 
+cd server && npm run dev 
+#Switch to another terminal 
+cd client && npm run dev 
+```
+- Open http://localhost:5173 in your browser or whatever URL you specified in the .env file. 
+
+### Authentication/Accounts
+- No accounts are included in the database. 
+- You must create any demo accounts(Member/Manager) that you want to use. 
+- To start, click the "Sign Up" button on the home page. 
 
 ## Layout
 
@@ -75,7 +101,7 @@ This definition of done has been taken from milestone 0 and modified to reflect 
 - It does what the issue asked and we have tested it in a running version. 
 - It has been reviewed and merged into main through a pull request. Since we are a group of two people, code review will be done by the other person. Any conflicts here will relay the task being finished until an agreement is reached. 
 - It has tests, and the whole test suite still passes. “Passes” here means passing the automated testing via a CI/CD pipeline and not the manual testing done for milestone 1. 
-- The app still runs from a fresh clone using the setup instructions in the README. This will be done using the CI/CD pipeline. 
+The app still runs from a fresh clone using the setup instructions in the README. This will be done using the CI/CD pipeline. 
 
 
 ## Contribution statements — Milestone 0
@@ -87,6 +113,12 @@ README, backlog, and architecture diagram.
 **Jesse Seidel** — Wrote the executive summary, target users and personas, proposed application,
 MVP scope, initial requirements (user stories, acceptance criteria, and the functional and
 non-functional requirement tables), and the success criteria.
+
+## Contribution statements — Milestone 1
+
+**Luke McArthur** — 
+
+**Jesse Seidel** — Initial project scaffolding(including the database table structure), allowing a manager to create/delete a lab, allowing members to view what labs they have been added to, and allowing a manager to add/remove members to a lab. In the milestone 1 document: Updated product brief/scope. Piroirtized backlog and definiton of dine, analysis model, ADR, UX wireframes, design pattern + justification, and authentication. 
 
 ## Documents
 
