@@ -34,7 +34,7 @@ server. See [docs/architecture.md](docs/architecture.md) for the diagrams and da
 git clone https://github.com/luke-mca/BenchTime
 cd BenchTime 
 ```
-- NOTE: the command CREATE DATABSE [your database name] should create the db using postgreSQL directly if you do not want to use pgAdmin. Just make sure the database can communicate on a port(default is 5432) and you have its URL(see .env.example for details). 
+- NOTE: the command CREATE DATABASE [your database name] should create the db using postgreSQL directly if you do not want to use pgAdmin. Just make sure the database can communicate on a port(default is 5432) and you have its URL(see .env.example for details). 
 - Open pgAdmin 4. 
 - Right click on your server(or create one under the main server group if needed). 
 - Click Create then Database. 
@@ -88,13 +88,11 @@ server/        Express API and migrations (Sprint 1)
 
 ## Working agreement
 
-Two-week sprints, two per milestone. Work is tracked as GitHub Issues; `main` is protected, and
-every change lands through a pull request reviewed by the other member. `main` is tagged at each
-milestone.
+Two-week sprints, two per milestone. Work is tracked as GitHub Issues, `main` is protected, and
+every change results eventually results in a pull request that must be review by the other member. `main` is tagged at each milestone.
 
 A task is considered done when it does what the issue asked, has been reviewed and merged through a pull
-request, has tests and the suite passes(if applicable), and the app still runs from a fresh clone using the
-instructions above.
+request, has tests and the suite passes(if applicable), and the app still runs from a fresh clone using the instructions above.
 
 ## Definition of Done 
 This definition of done has been taken from milestone 0 and modified to reflect the changes we plan to make while working on milestone 2. Our definition of done is that a task is not finished until:
@@ -118,7 +116,7 @@ non-functional requirement tables), and the success criteria.
 
 **Luke McArthur** — 
 
-**Jesse Seidel** — Initial project scaffolding(including the database table structure), allowing a manager to create/delete a lab, allowing members to view what labs they have been added to, and allowing a manager to add/remove members to a lab. In the milestone 1 document: Updated product brief/scope. Piroirtized backlog and definiton of dine, analysis model, ADR, UX wireframes, design pattern + justification, and authentication. 
+**Jesse Seidel** — Initial project scaffolding(including the database table structure), allowing a manager to create/delete a lab, allowing members to view what labs they have been added to, and allowing a manager to add/remove members to a lab. In the milestone 1 document: Updated product brief/scope. Piroirtized backlog and definiton of done, analysis model, ADR, UX wireframes, design pattern + justification, and authentication. 
 
 ## Documents
 
