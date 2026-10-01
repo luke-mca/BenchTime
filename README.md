@@ -21,6 +21,8 @@ server. See [docs/architecture.md](docs/architecture.md) for the diagrams and da
 
 ## Getting started
 
+NOTE: Every command block below starts from the repo root (the `BenchTime` folder).
+
 ### Required Software 
 - Node.js: versions 24.19.0
 - npm: version 11.17 
@@ -48,6 +50,8 @@ cd server
 cp .env.example .env 
 ```
 - Fill out the .env file according to the comments. 
+- Leave `PORT=3000`. The client sends its API requests to port 3000.
+- In `DATABASE_URL`, use your PostgreSQL password and the database name you created above.
 
 ### Install Depdendencies 
 ```bash 
@@ -75,6 +79,16 @@ cd client && npm run dev
 - No accounts are included in the database. 
 - You must create any demo accounts(Member/Manager) that you want to use. 
 - To start, click the "Sign Up" button on the home page. 
+
+## Verifying Milestone 1
+
+With the server and client running, open http://localhost:5173 and check the following:
+
+1. **Manager setup.** Sign up as a Lab Manager. Create a lab, open it, and add a piece of equipment.
+2. **Member setup.** Log out and sign up as a Member. The home page says "You haven't been added to any labs yet."
+3. **Add the member.** Log back in as the manager, open the lab, and add the member by username.
+4. **Reserve.** Log in as the member. The lab now appears on the home page. Open it, click **Reserve** next to the equipment, pick a start and end time, and submit. The reservation appears under "Upcoming reservations".
+5. **Overlap is rejected.** Try to reserve the same equipment for a time that overlaps the first reservation. It is rejected with an error message.
 
 ## Layout
 
@@ -114,7 +128,7 @@ non-functional requirement tables), and the success criteria.
 
 ## Contribution statements — Milestone 1
 
-**Luke McArthur** — 
+**Luke McArthur** — The issues I worked on: Lab Member Registration, Lab Manager Registration, CRUD Equipment, Add Equipment to Lab, Allow Any User to Reserve Equipment. For the report, I did the process model, API contract, module-boundary diagram, component design, responsive design, MVP features. 
 
 **Jesse Seidel** — Initial project scaffolding(including the database table structure), allowing a manager to create/delete a lab, allowing members to view what labs they have been added to, and allowing a manager to add/remove members to a lab. In the milestone 1 document: Updated product brief/scope. Piroirtized backlog and definiton of done, analysis model, ADR, UX wireframes, design pattern + justification, and authentication. 
 
