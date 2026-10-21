@@ -19,7 +19,6 @@ export const ReservationRepository = {
   },
 
   //Books active equipment in a lab. Returns null if the equipment is not active in that lab.
-  //Overlaps are rejected by the reservations_no_overlap constraint, not checked here.
   async create({ labId, equipmentId, userId, startTime, endTime }) {
     const result = await pool.query(
       `WITH inserted AS (
@@ -33,6 +32,47 @@ export const ReservationRepository = {
       [equipmentId, labId, userId, startTime, endTime],
     );
     return result.rows[0] ?? null;
+  },
+
+  //Lists every piece of equipment in a lab with how many reservations overlap [from, to).
+  //Removed equipment is only listed if it was reserved in that window.
+  async countForLab({ labId, from, to }) {
+    const result = await pool.query(
+      `SELECT e.id, e.name, e.active, count(r.id)::int AS "reservationCount"
+         FROM equipment e
+         LEFT JOIN reservations r
+           ON r.equipment_id = e.id AND r.start_time < $3 AND r.end_time > $2
+        WHERE e.lab_id = $1
+        GROUP BY e.id
+       HAVING e.active OR count(r.id) > 0
+        ORDER BY lower(e.name), e.id`,
+      [labId, from, to],
+    );
+    return result.rows;
+  },
+
+  //Reserved hours in a lab during [from, to), split by equipment, weekday and hour of the day in the given time zone.
+  async hoursByWeekdayAndHour({ labId, from, to, timeZone }) {
+    const result = await pool.query(
+      `WITH clipped AS (
+         SELECT r.equipment_id,
+                greatest(r.start_time, $2) AT TIME ZONE $4 AS s,
+                least(r.end_time, $3) AT TIME ZONE $4 AS e
+           FROM reservations r
+           JOIN equipment eq ON eq.id = r.equipment_id
+          WHERE eq.lab_id = $1 AND r.start_time < $3 AND r.end_time > $2
+       )
+       SELECT c.equipment_id AS "equipmentId",
+              extract(isodow FROM h)::int AS weekday,
+              extract(hour FROM h)::int AS hour,
+              sum(extract(epoch FROM least(c.e, h + interval '1 hour') - greatest(c.s, h)) / 3600)::float8 AS hours
+         FROM clipped c
+        CROSS JOIN LATERAL generate_series(
+                date_trunc('hour', c.s), c.e - interval '1 microsecond', interval '1 hour') AS h
+        GROUP BY 1, 2, 3`,
+      [labId, from, to, timeZone],
+    );
+    return result.rows;
   },
 
   //Deletes the user's own reservation in a lab if it has not ended. Past ones are kept for usage statistics.

@@ -97,6 +97,16 @@ labsRouter.delete('/:id/equipment/:equipmentId', requireAuth, requireRole('manag
   res.status(204).end();
 });
 
+//Utilization statistics for every piece of equipment in a lab the signed in manager owns.
+labsRouter.get('/:id/stats', requireAuth, requireRole('manager'), async (req, res) => {
+  const stats = await ReservationService.getUtilization({
+    labId: req.params.id,
+    ownerId: req.user.id,
+    timeZone: req.query.tz,
+  });
+  res.json({ stats });
+});
+
 //Lists upcoming reservations for a piece of equipment, for the lab's manager or its members.
 labsRouter.get('/:id/equipment/:equipmentId/reservations', requireAuth, async (req, res) => {
   const reservations = await ReservationService.listReservations({
