@@ -87,3 +87,13 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 ### Changed 
 - Every lab returned by the API now includes `ownerUsername`, `memberCount`, and `equipmentCount`.
 - labRepository.js, labService.js, labs.js, api.js, Home.jsx, and LabPage.jsx to implement the above mentioned changes. 
+
+## [milestone-2] — 2026-10-01
+
+## [Unreleased]
+
+### Added 
+
+- Added enpoints for a logged in manager to request utilization statistics for certain pieces of equipment. 
+- Managers can now see utilization statistics for every piece of equipment in a lab that they own. 
+- Students cannot see utilization statistics for pieces of equipment.  
