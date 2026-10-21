@@ -44,7 +44,7 @@ export function parseId(value) {
 }
 
 //Every route that works inside a lab starts here.
-async function findOwnedLabOrThrow(labId, ownerId) {
+export async function findOwnedLabOrThrow(labId, ownerId) {
   const id = parseId(labId);
   const lab = id ? await LabRepository.findOwnedBy(id, ownerId) : null;
 

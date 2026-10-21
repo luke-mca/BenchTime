@@ -92,6 +92,13 @@ export const api = {
       `/api/labs/${encodeURIComponent(labId)}/equipment/${encodeURIComponent(equipmentId)}`,
       { method: 'DELETE' },
     ),
+  //Utilization statistics. Manager-only. Sends the browser's time zone so busiest day/hour are local.
+  getStats: (labId) =>
+    request(
+      `/api/labs/${encodeURIComponent(labId)}/stats?tz=${encodeURIComponent(
+        Intl.DateTimeFormat().resolvedOptions().timeZone,
+      )}`,
+    ),
   //Reservations. Open to the lab's manager and members; only your own reservations can be cancelled.
   listReservations: (labId, equipmentId) =>
     request(

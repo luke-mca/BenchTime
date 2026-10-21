@@ -1,14 +1,19 @@
 import { EquipmentRepository } from '../repositories/equipmentRepository.js';
 import { ReservationRepository } from '../repositories/reservationRepository.js';
-import { findAccessibleLabOrThrow, parseId } from './labService.js';
+import { findAccessibleLabOrThrow, findOwnedLabOrThrow, parseId } from './labService.js';
 import { ValidationError, NotFoundError, ConflictError } from '../errors.js';
 
 //Longest single reservation allowed.
 export const MAX_RESERVATION_HOURS = 6;
 
+//How many weeks back the utilization statistics cover.
+export const STATS_WEEKS = 4;
+
 //Postgres error codes for the reservations_no_overlap and reservations_time_order constraints.
 const EXCLUSION_VIOLATION = '23P01';
 const CHECK_VIOLATION = '23514';
+//Postgres error code for a time zone name it does not recognize.
+const INVALID_PARAMETER_VALUE = '22023';
 
 //How far in the past a start time can be. Covers picking the current minute in the form.
 const START_GRACE_MS = 60 * 1000;
@@ -33,6 +38,19 @@ function parseTime(value, label) {
   }
 
   return time;
+}
+
+//Returns an IANA time zone name such as "America/Chicago", or UTC if none was given.
+function parseTimeZone(value) {
+  if (value === undefined || value === '') return 'UTC';
+
+  try {
+    if (typeof value !== 'string') throw new RangeError();
+    new Intl.DateTimeFormat('en-US', { timeZone: value });
+    return value;
+  } catch {
+    throw new ValidationError('Time zone must be a valid IANA time zone name.', 'INVALID_TIME_ZONE');
+  }
 }
 
 async function findEquipmentOrThrow(labId, equipmentId) {
@@ -110,6 +128,53 @@ export const ReservationService = {
     }
 
     return toPublicReservation(row, user.id);
+  },
+
+  //Utilization statistics for every piece of equipment in a lab the manager owns, over the last STATS_WEEKS weeks.
+  //Weekdays and hours are in the caller's time. 
+  async getUtilization({ labId, ownerId, timeZone } = {}) {
+    const lab = await findOwnedLabOrThrow(labId, ownerId);
+    const zone = parseTimeZone(timeZone);
+
+    const to = new Date();
+    const from = new Date(to.getTime() - STATS_WEEKS * 7 * 24 * 60 * 60 * 1000);
+
+    let counts;
+    let buckets;
+    try {
+      [counts, buckets] = await Promise.all([
+        ReservationRepository.countForLab({ labId: lab.id, from, to }),
+        ReservationRepository.hoursByWeekdayAndHour({ labId: lab.id, from, to, timeZone: zone }),
+      ]);
+    } catch (error) {
+      //Node and Postgres ship different time zone lists, so a name Node accepted can still be rejected here.
+      if (error.code === INVALID_PARAMETER_VALUE) {
+        throw new ValidationError('Time zone must be a valid IANA time zone name.', 'INVALID_TIME_ZONE');
+      }
+      throw error;
+    }
+
+    const equipment = counts.map((row) => ({
+      id: String(row.id),
+      name: row.name,
+      removed: !row.active,
+      reservationCount: row.reservationCount,
+      totalHours: 0,
+      //Index 0 is Monday.
+      hoursByWeekday: Array(7).fill(0),
+      hoursByHour: Array(24).fill(0),
+    }));
+
+    const byId = new Map(equipment.map((item) => [item.id, item]));
+    for (const bucket of buckets) {
+      const item = byId.get(String(bucket.equipmentId));
+      if (!item) continue;
+      item.totalHours += bucket.hours;
+      item.hoursByWeekday[bucket.weekday - 1] += bucket.hours;
+      item.hoursByHour[bucket.hour] += bucket.hours;
+    }
+
+    return { from, to, weeks: STATS_WEEKS, timeZone: zone, equipment };
   },
 
   //Cancels one of the signed in user's own reservations.
