@@ -64,7 +64,127 @@ export function LabPage() {
       <LabEquipment labId={labId} canAdd={user.role === 'manager'} />
 
       {user.role === 'manager' && <LabMembers labId={labId} />}
+
+      {user.role === 'manager' && <LabStats labId={labId} />}
     </section>
+  );
+}
+
+//Index of the largest value, or -1 if every value is 0.
+function indexOfMax(values) {
+  let best = -1;
+  values.forEach((value, i) => {
+    if (value > 0 && (best === -1 || value > values[best])) best = i;
+  });
+  return best;
+}
+
+//Weekday name for an index where 0 is Monday. Jan 1, 2024 was a Monday.
+function weekdayName(index) {
+  return new Date(2024, 0, 1 + index).toLocaleDateString([], { weekday: 'long' });
+}
+
+//"2 PM – 3 PM" for hour 14, in the browser's locale.
+function hourRange(hour) {
+  const format = (h) => new Date(2024, 0, 1, h).toLocaleTimeString([], { hour: 'numeric' });
+  return `${format(hour)} – ${format((hour + 1) % 24)}`;
+}
+
+//Utilization statistics for the manager only. The server also rejects anyone but the lab's manager.
+function LabStats({ labId }) {
+  const [stats, setStats] = useState(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    setStats(null);
+    setError('');
+
+    api
+      .getStats(labId)
+      .then(({ stats: current }) => !cancelled && setStats(current))
+      .catch((err) => !cancelled && setError(err.message));
+
+    return () => {
+      cancelled = true;
+    };
+  }, [labId]);
+
+  return (
+    <>
+      <div className="mt-6">
+        <h2 className="text-lg font-semibold">Utilization</h2>
+        <p className="text-sm text-gray-500">
+          Averages over the last {stats?.weeks ?? 4} weeks. Days and hours are in your time zone.
+        </p>
+      </div>
+
+      <StatsTable stats={stats} error={error} />
+    </>
+  );
+}
+
+function StatsTable({ stats, error }) {
+  if (error) {
+    return (
+      <div className="mt-4">
+        <FormError id="stats-error" message={error} />
+      </div>
+    );
+  }
+
+  if (stats === null) {
+    return <p className="mt-4 text-gray-500">Loading…</p>;
+  }
+
+  if (stats.equipment.length === 0) {
+    return (
+      <div className="mt-4 rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center">
+        <p className="text-gray-600">Add equipment to see its utilization here.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 overflow-x-auto rounded-lg border border-gray-200 bg-white">
+      <table className="w-full text-left text-sm">
+        <thead className="border-b border-gray-200 text-gray-600">
+          <tr>
+            <th scope="col" className="px-4 py-2 font-medium">Equipment</th>
+            <th scope="col" className="px-4 py-2 text-right font-medium">Hours / week</th>
+            <th scope="col" className="px-4 py-2 text-right font-medium">Reservations / week</th>
+            <th scope="col" className="px-4 py-2 font-medium">Busiest day</th>
+            <th scope="col" className="px-4 py-2 font-medium">Busiest hour</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {stats.equipment.map((item) => {
+            const day = indexOfMax(item.hoursByWeekday);
+            const hour = indexOfMax(item.hoursByHour);
+            return (
+              <tr key={item.id}>
+                <th scope="row" className="px-4 py-2 font-medium text-gray-900">
+                  {item.name}
+                  {item.removed && <span className="ml-1 font-normal text-gray-500">(removed)</span>}
+                </th>
+                <td className="px-4 py-2 text-right tabular-nums">
+                  {(item.totalHours / stats.weeks).toFixed(1)}
+                </td>
+                <td className="px-4 py-2 text-right tabular-nums">
+                  {(item.reservationCount / stats.weeks).toFixed(1)}
+                </td>
+                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                  {day === -1 ? '—' : weekdayName(day)}
+                </td>
+                <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                  {hour === -1 ? '—' : hourRange(hour)}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
