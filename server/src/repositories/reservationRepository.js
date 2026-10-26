@@ -75,6 +75,34 @@ export const ReservationRepository = {
     return result.rows;
   },
 
+  //Changes the times of a reservation in a lab if it has not ended. Returns null if nothing matched.
+  async updateInLab({ labId, reservationId, startTime, endTime }) {
+    const result = await pool.query(
+      `WITH updated AS (
+         UPDATE reservations r
+            SET start_time = $3, end_time = $4
+           FROM equipment e
+          WHERE r.id = $1 AND e.id = r.equipment_id AND e.lab_id = $2 AND r.end_time > now()
+         RETURNING r.*
+       )
+       SELECT ${COLUMNS} FROM updated r JOIN users u ON u.id = r.user_id`,
+      [reservationId, labId, startTime, endTime],
+    );
+    return result.rows[0] ?? null;
+  },
+
+  //Deletes anyone's reservation in a lab if it has not ended. Used by the lab's manager.
+  //Returns false if nothing matched.
+  async deleteInLab({ labId, reservationId }) {
+    const result = await pool.query(
+      `DELETE FROM reservations r
+        USING equipment e
+        WHERE r.id = $1 AND e.id = r.equipment_id AND e.lab_id = $2 AND r.end_time > now()`,
+      [reservationId, labId],
+    );
+    return result.rowCount > 0;
+  },
+
   //Deletes the user's own reservation in a lab if it has not ended. Past ones are kept for usage statistics.
   //Returns false if nothing matched.
   async deleteOwn({ labId, reservationId, userId }) {

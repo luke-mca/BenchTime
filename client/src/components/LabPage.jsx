@@ -407,7 +407,9 @@ function EquipmentList({
             </span>
           </div>
 
-          {scheduleId === item.id && <EquipmentReservations labId={labId} equipment={item} />}
+          {scheduleId === item.id && (
+            <EquipmentReservations labId={labId} equipment={item} canManage={canAdd} />
+          )}
         </li>
       ))}
     </ul>
@@ -438,7 +440,8 @@ function formatRange(startTime, endTime) {
 }
 
 //The schedule and booking form for one piece of equipment, opened from its Reserve button.
-function EquipmentReservations({ labId, equipment }) {
+//The lab's manager can also edit or remove anyone's reservation here.
+function EquipmentReservations({ labId, equipment, canManage }) {
   const [reservations, setReservations] = useState(null);
   const [error, setError] = useState('');
   //Bumped to fetch the list again, e.g. after someone else took the slot we tried to book.
@@ -469,6 +472,14 @@ function EquipmentReservations({ labId, equipment }) {
     );
   }
 
+  function handleUpdated(reservation) {
+    setReservations((current) =>
+      current
+        .map((existing) => (existing.id === reservation.id ? reservation : existing))
+        .sort((a, b) => new Date(a.startTime) - new Date(b.startTime)),
+    );
+  }
+
   async function handleCancel(reservation) {
     setCancellingId(reservation.id);
     setCancelError(null);
@@ -495,10 +506,14 @@ function EquipmentReservations({ labId, equipment }) {
         )}
 
         <ReservationList
+          labId={labId}
           reservations={reservations}
           error={error}
+          canManage={canManage}
           onCancel={handleCancel}
           cancellingId={cancellingId}
+          onUpdated={handleUpdated}
+          onConflict={() => setReloadKey((key) => key + 1)}
         />
       </div>
 
@@ -589,9 +604,20 @@ function ReservationForm({ labId, equipment, onReserved, onConflict }) {
   );
 }
 
-function ReservationList({ reservations, error, onCancel, cancellingId }) {
+function ReservationList({
+  labId,
+  reservations,
+  error,
+  canManage,
+  onCancel,
+  cancellingId,
+  onUpdated,
+  onConflict,
+}) {
   //The reservation whose Cancel was clicked once. A second click on Confirm actually cancels it.
   const [confirmingId, setConfirmingId] = useState(null);
+  //The reservation the manager is editing. Only one is open at a time.
+  const [editingId, setEditingId] = useState(null);
 
   if (error) {
     return (
@@ -612,40 +638,145 @@ function ReservationList({ reservations, error, onCancel, cancellingId }) {
   return (
     <ul className="mt-2 divide-y divide-gray-100 text-sm">
       {reservations.map((reservation) => (
-        <li key={reservation.id} className="flex items-center justify-between gap-3 py-2">
-          <span className="text-gray-900">
-            {formatRange(reservation.startTime, reservation.endTime)}
-          </span>
-          <span className="flex items-center gap-3">
-            <span className={reservation.isMine ? 'font-medium text-indigo-700' : 'text-gray-600'}>
-              {reservation.isMine ? 'You' : reservation.username}
+        <li key={reservation.id} className="py-2">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-gray-900">
+              {formatRange(reservation.startTime, reservation.endTime)}
             </span>
-            {reservation.isMine &&
-              (confirmingId === reservation.id ? (
-                <button
-                  type="button"
-                  onClick={() => onCancel(reservation)}
-                  //Clicking or tabbing away backs out of the confirm.
-                  onBlur={() => setConfirmingId(null)}
-                  disabled={cancellingId === reservation.id}
-                  autoFocus
-                  className="w-20 rounded bg-red-600 py-0.5 text-center text-sm text-white hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-40"
-                >
-                  Confirm
-                </button>
+            <span className="flex items-center gap-3">
+              <span className={reservation.isMine ? 'font-medium text-indigo-700' : 'text-gray-600'}>
+                {reservation.isMine ? 'You' : reservation.username}
+              </span>
+              {canManage ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setEditingId((open) => (open === reservation.id ? null : reservation.id))}
+                    aria-expanded={editingId === reservation.id}
+                    className="rounded px-2 py-0.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  >
+                    {editingId === reservation.id ? 'Close' : 'Edit'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      window.confirm(
+                        `Remove ${reservation.isMine ? 'your' : `${reservation.username}'s`} reservation?`,
+                      ) && onCancel(reservation)
+                    }
+                    disabled={cancellingId === reservation.id}
+                    aria-label={`Remove ${reservation.isMine ? 'your' : `${reservation.username}'s`} reservation`}
+                    className="rounded px-2 py-0.5 text-lg leading-none text-gray-400 hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-40"
+                  >
+                    ×
+                  </button>
+                </>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => setConfirmingId(reservation.id)}
-                  className="w-20 rounded py-0.5 text-center text-sm text-gray-500 hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
-                >
-                  Cancel
-                </button>
-              ))}
-          </span>
+                reservation.isMine &&
+                (confirmingId === reservation.id ? (
+                  <button
+                    type="button"
+                    onClick={() => onCancel(reservation)}
+                    //Clicking or tabbing away backs out of the confirm.
+                    onBlur={() => setConfirmingId(null)}
+                    disabled={cancellingId === reservation.id}
+                    autoFocus
+                    className="w-20 rounded bg-red-600 py-0.5 text-center text-sm text-white hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-40"
+                  >
+                    Confirm
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmingId(reservation.id)}
+                    className="w-20 rounded py-0.5 text-center text-sm text-gray-500 hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                  >
+                    Cancel
+                  </button>
+                ))
+              )}
+            </span>
+          </div>
+
+          {editingId === reservation.id && (
+            <EditReservationForm
+              labId={labId}
+              reservation={reservation}
+              onSaved={(updated) => {
+                onUpdated(updated);
+                setEditingId(null);
+              }}
+              onConflict={onConflict}
+            />
+          )}
         </li>
       ))}
     </ul>
+  );
+}
+
+//Lets the lab's manager change the times of anyone's reservation. Opened from the row's Edit button.
+function EditReservationForm({ labId, reservation, onSaved, onConflict }) {
+  const [status, setStatus] = useState(STATES.IDLE);
+  const [start, setStart] = useState(() => toLocalInputValue(new Date(reservation.startTime)));
+  const [end, setEnd] = useState(() => toLocalInputValue(new Date(reservation.endTime)));
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const errorElementId = `edit-reservation-error-${reservation.id}`;
+  const errorId = errorMessage ? errorElementId : undefined;
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setStatus(STATES.SUBMITTING);
+    setErrorMessage(null);
+
+    try {
+      const { reservation: updated } = await api.updateReservation(labId, reservation.id, {
+        startTime: toIsoOrUndefined(start),
+        endTime: toIsoOrUndefined(end),
+      });
+      onSaved(updated);
+    } catch (error) {
+      setErrorMessage(error.status ? error.message : 'Something went wrong. Please try again.');
+      if (error.code === 'RESERVATION_OVERLAP') onConflict();
+      setStatus(STATES.IDLE);
+    }
+  }
+
+  return (
+    <form
+      className="mt-2 space-y-3 rounded border border-gray-200 bg-gray-50 p-3"
+      onSubmit={handleSubmit}
+      noValidate
+    >
+      <div className="grid gap-3 sm:grid-cols-2">
+        <FormField
+          id={`edit-reservation-start-${reservation.id}`}
+          label="Start"
+          type="datetime-local"
+          value={start}
+          onChange={(e) => setStart(e.target.value)}
+          errorId={errorId}
+          required
+        />
+        <FormField
+          id={`edit-reservation-end-${reservation.id}`}
+          label="End"
+          type="datetime-local"
+          value={end}
+          min={start}
+          onChange={(e) => setEnd(e.target.value)}
+          errorId={errorId}
+          required
+        />
+      </div>
+
+      <FormError id={errorElementId} message={errorMessage} />
+
+      <SubmitButton busy={status === STATES.SUBMITTING} busyLabel="Saving…">
+        Save changes
+      </SubmitButton>
+    </form>
   );
 }
 

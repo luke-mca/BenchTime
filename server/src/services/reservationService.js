@@ -53,6 +53,43 @@ function parseTimeZone(value) {
   }
 }
 
+//Parses and checks a reservation's start and end. Shared by booking and editing.
+function parseRange(startTime, endTime) {
+  const start = parseTime(startTime, 'Start time');
+  const end = parseTime(endTime, 'End time');
+
+  if (end <= start) {
+    throw new ValidationError('The end time must be after the start time.', 'RESERVATION_END_BEFORE_START');
+  }
+
+  if (start.getTime() < Date.now() - START_GRACE_MS) {
+    throw new ValidationError('A reservation cannot start in the past.', 'RESERVATION_IN_PAST');
+  }
+
+  if (end - start > MAX_RESERVATION_HOURS * 60 * 60 * 1000) {
+    throw new ValidationError(
+      `A reservation can be at most ${MAX_RESERVATION_HOURS} hours long.`,
+      'RESERVATION_TOO_LONG',
+    );
+  }
+
+  return { start, end };
+}
+
+//The database decides overlaps so two bookings made at the same moment cannot both succeed.
+function toReservationError(error) {
+  if (error.code === EXCLUSION_VIOLATION) {
+    return new ConflictError(
+      'That time overlaps an existing reservation. Pick a different time.',
+      'RESERVATION_OVERLAP',
+    );
+  }
+  if (error.code === CHECK_VIOLATION) {
+    return new ValidationError('The end time must be after the start time.', 'RESERVATION_END_BEFORE_START');
+  }
+  return error;
+}
+
 async function findEquipmentOrThrow(labId, equipmentId) {
   const id = parseId(equipmentId);
   const equipment = id ? await EquipmentRepository.findActiveInLab(labId, id) : null;
@@ -78,24 +115,7 @@ export const ReservationService = {
   //Reserves a piece of equipment for the signed in user.
   async createReservation({ labId, equipmentId, startTime, endTime, user } = {}) {
     const lab = await findAccessibleLabOrThrow(labId, user);
-
-    const start = parseTime(startTime, 'Start time');
-    const end = parseTime(endTime, 'End time');
-
-    if (end <= start) {
-      throw new ValidationError('The end time must be after the start time.', 'RESERVATION_END_BEFORE_START');
-    }
-
-    if (start.getTime() < Date.now() - START_GRACE_MS) {
-      throw new ValidationError('A reservation cannot start in the past.', 'RESERVATION_IN_PAST');
-    }
-
-    if (end - start > MAX_RESERVATION_HOURS * 60 * 60 * 1000) {
-      throw new ValidationError(
-        `A reservation can be at most ${MAX_RESERVATION_HOURS} hours long.`,
-        'RESERVATION_TOO_LONG',
-      );
-    }
+    const { start, end } = parseRange(startTime, endTime);
 
     const id = parseId(equipmentId);
     let row;
@@ -110,17 +130,7 @@ export const ReservationService = {
           })
         : null;
     } catch (error) {
-      //The database decides overlaps so two bookings made at the same moment cannot both succeed.
-      if (error.code === EXCLUSION_VIOLATION) {
-        throw new ConflictError(
-          'That time overlaps an existing reservation. Pick a different time.',
-          'RESERVATION_OVERLAP',
-        );
-      }
-      if (error.code === CHECK_VIOLATION) {
-        throw new ValidationError('The end time must be after the start time.', 'RESERVATION_END_BEFORE_START');
-      }
-      throw error;
+      throw toReservationError(error);
     }
 
     if (!row) {
@@ -128,6 +138,33 @@ export const ReservationService = {
     }
 
     return toPublicReservation(row, user.id);
+  },
+
+  //Changes the times of anyone's upcoming reservation in a lab the manager owns.
+  async updateReservation({ labId, reservationId, startTime, endTime, ownerId } = {}) {
+    const lab = await findOwnedLabOrThrow(labId, ownerId);
+    const { start, end } = parseRange(startTime, endTime);
+
+    const id = parseId(reservationId);
+    let row;
+    try {
+      row = id
+        ? await ReservationRepository.updateInLab({
+            labId: lab.id,
+            reservationId: id,
+            startTime: start,
+            endTime: end,
+          })
+        : null;
+    } catch (error) {
+      throw toReservationError(error);
+    }
+
+    if (!row) {
+      throw new NotFoundError('That reservation does not exist.');
+    }
+
+    return toPublicReservation(row, ownerId);
   },
 
   //Utilization statistics for every piece of equipment in a lab the manager owns, over the last STATS_WEEKS weeks.
@@ -177,14 +214,18 @@ export const ReservationService = {
     return { from, to, weeks: STATS_WEEKS, timeZone: zone, equipment };
   },
 
-  //Cancels one of the signed in user's own reservations.
+  //Cancels an upcoming reservation. Members can only cancel their own; the lab's manager can cancel anyone's.
   async cancelReservation({ labId, reservationId, user } = {}) {
     const lab = await findAccessibleLabOrThrow(labId, user);
 
     const id = parseId(reservationId);
-    const deleted = id
-      ? await ReservationRepository.deleteOwn({ labId: lab.id, reservationId: id, userId: user.id })
-      : false;
+    let deleted = false;
+    if (id) {
+      deleted =
+        user.role === 'manager'
+          ? await ReservationRepository.deleteInLab({ labId: lab.id, reservationId: id })
+          : await ReservationRepository.deleteOwn({ labId: lab.id, reservationId: id, userId: user.id });
+    }
 
     if (!deleted) {
       throw new NotFoundError('That reservation does not exist.');
