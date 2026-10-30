@@ -99,7 +99,8 @@ export const api = {
         Intl.DateTimeFormat().resolvedOptions().timeZone,
       )}`,
     ),
-  //Reservations. Open to the lab's manager and members; only your own reservations can be cancelled.
+  //Reservations. Open to the lab's manager and members. Members can only cancel their own;
+  //the manager can edit or cancel anyone's.
   listReservations: (labId, equipmentId) =>
     request(
       `/api/labs/${encodeURIComponent(labId)}/equipment/${encodeURIComponent(equipmentId)}/reservations`,
@@ -108,6 +109,11 @@ export const api = {
     post(
       `/api/labs/${encodeURIComponent(labId)}/equipment/${encodeURIComponent(equipmentId)}/reservations`,
       { startTime, endTime },
+    ),
+  updateReservation: (labId, reservationId, { startTime, endTime }) =>
+    request(
+      `/api/labs/${encodeURIComponent(labId)}/reservations/${encodeURIComponent(reservationId)}`,
+      { method: 'PATCH', body: JSON.stringify({ startTime, endTime }) },
     ),
   cancelReservation: (labId, reservationId) =>
     request(

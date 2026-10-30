@@ -130,7 +130,20 @@ labsRouter.post('/:id/equipment/:equipmentId/reservations', requireAuth, async (
   res.status(201).json({ reservation });
 });
 
-//Cancels one of the signed in user's own reservations.
+//Changes the times of anyone's upcoming reservation in a lab the signed in manager owns.
+labsRouter.patch('/:id/reservations/:reservationId', requireAuth, requireRole('manager'), async (req, res) => {
+  const { startTime, endTime } = req.body ?? {};
+  const reservation = await ReservationService.updateReservation({
+    labId: req.params.id,
+    reservationId: req.params.reservationId,
+    startTime,
+    endTime,
+    ownerId: req.user.id,
+  });
+  res.json({ reservation });
+});
+
+//Cancels a reservation. Members can cancel their own and the lab's manager can cancel anyone's.
 labsRouter.delete('/:id/reservations/:reservationId', requireAuth, async (req, res) => {
   await ReservationService.cancelReservation({
     labId: req.params.id,
