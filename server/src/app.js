@@ -35,7 +35,8 @@ export function createApp({ rateLimits = defaultRateLimits } = {}) {
   app.use(cookieParser());
 
   app.use('/api', createLimiter(rateLimits.api));
-  app.use('/api/auth', createLimiter(rateLimits.auth));
+  app.use('/api/auth/login', createLimiter(rateLimits.auth));
+  app.use('/api/auth/register', createLimiter(rateLimits.auth));
 
   app.use('/api/health', healthRouter);
   app.use('/api/auth', authRouter);

@@ -41,8 +41,9 @@ describe('rate limiting', () => {
   it('applies a stricter limit to auth routes', async () => {
     const app = createApp({ rateLimits: { api: { windowMs, limit: 10 }, auth: { windowMs, limit: 1 } } });
 
-    await request(app).get('/api/auth/does-not-exist').expect(404);
-    await request(app).get('/api/auth/does-not-exist').expect(429);
+    await request(app).post('/api/auth/login').expect(401);
+    await request(app).post('/api/auth/login').expect(429);
+    await request(app).get('/api/auth/me').expect(401);
     await request(app).get('/api/health').expect(200);
   });
 
