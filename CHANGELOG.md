@@ -26,7 +26,7 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 - .sql files with the data base format. 
 - js migration file under server/db/scripts for automatically migrating the database. 
 
-## [Unreleased]
+## [Released]
 
 ### Added 
 
@@ -36,7 +36,7 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 - Added LabPage.jsx and LabsPage.jsx for displaying all labs belonging to a logged in lab manager and all all members inside of each lab. 
 - Allowed a signed in manager to 1: create labs and 2: add members to a lab. 
 
-## [Unreleased]
+## [Released]
 
 ### Added
 
@@ -52,7 +52,7 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 
 - `SESSION_SECRET` replaced by `ACCESS_TOKEN_SECRET` and `REFRESH_TOKEN_SECRET` in `server/.env`.
 
-## [Unreleased]
+## [Released]
 
 ### Added 
 - Services, routes, and repository files so that a client who is logged in as a manager can create a lab/view the members that are part of that lab. All of these were implemented with FR-3 and FR-6 in mind. 
@@ -62,7 +62,7 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 ### Changed 
 - errors.js was updated with some more errors according to (NFR-6). 
 
-## [Unreleased]
+## [Released]
 
 ### Added 
 - Services, routes, and repository files so that a manager can add/delete members from a lab and so members can see the labs theyve been added to.
@@ -90,16 +90,41 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 
 ## [milestone-2] — 2026-10-01
 
-## [Unreleased]
+## [Released]
 
 ### Added 
 
 - Added enpoints for a logged in manager to request utilization statistics for certain pieces of equipment. 
 - Managers can now see utilization statistics for every piece of equipment in a lab that they own. 
-- Students cannot see utilization statistics for pieces of equipment.  
+- Students cannot see utilization statistics for pieces of equipment. See US-11 in CHANGELOG.md. 
+
+### Added 
+
+- Managers can now edit/delete member reservations in the labs that they own. See US-13 in CHANGELOG.md. 
+
+### Changed 
+
+- Access control for reservations to allow members to edit/delete a member's reservations. 
 
 ### Added 
 
 - Unit tests for adding equipment, making reservations(members + managers), managers editing reservations, and logging in/signing up. 
-
 - Added component tests for the client for the above unit tests. 
+
+### Added 
+
+- Added rate limiting for the server to protect endpoints. 
+- Added rate limting test cases under the client directory. 
+
+### Added 
+
+- .env.test.example for a database that can be used for viewport/integration tests. 
+- added test cases for viewport test across multiple different browsers/devices. 
+
+### Added 
+
+- unit tests for labs, members, utilization statistics, and the LabPage. 
+- added corresponding components tests for the client. 
+
+### Added 
+- integration tests for key user flows and a full browser flow test. 

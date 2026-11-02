@@ -152,7 +152,7 @@ in the [README](README.md#development-process).
 
 ## Medium priority (Milestone 2)
 
-### US-10 — Manager edits reservations in their labs · 3 pts(In progress once milestone 2 starts)
+### US-10 — Manager edits reservations in their labs · 3 pts(Done) 
 > As a lab manager, I want to edit the reservations under the equipment calendars I own so that
 > I can resolve conflicts and misuse.
 
@@ -162,7 +162,7 @@ in the [README](README.md#development-process).
 
 **Requirements:** FR-3, FR-11
 
-### US-11 — Utilization statistics · 5 pts(In progress once milestone 2 starts)
+### US-11 — Utilization statistics · 5 pts(Done)
 > As a manager, I want to view utilization statistics for every piece of equipment so that I can
 > make informed decisions about purchases and maintenance.
 
