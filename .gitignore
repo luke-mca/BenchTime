@@ -7,6 +7,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+!.env.test.example
 *.pem
 *.key
 
@@ -19,6 +20,9 @@ build/
 # Test and coverage
 coverage/
 .nyc_output/
+test-results/
+playwright-report/
+.auth/
 
 # Logs
 logs/
