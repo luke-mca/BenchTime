@@ -5,15 +5,23 @@ import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
 import { labsRouter } from './routes/labs.js';
 import { AppError } from './errors.js';
+import { config } from './config.js';
 
 //Setting up endpoint rate limitng. 
 
 const FIFTEEN_MINUTES = 15 * 60 * 1000;
 
-const defaultRateLimits = {
-  api: { windowMs: FIFTEEN_MINUTES, limit: 300 },
-  auth: { windowMs: FIFTEEN_MINUTES, limit: 10 },
-};
+//Browser tests send every request from one IP, so the test server gets much higher limits.
+const defaultRateLimits =
+  config.env === 'test'
+    ? {
+        api: { windowMs: FIFTEEN_MINUTES, limit: 100_000 },
+        auth: { windowMs: FIFTEEN_MINUTES, limit: 10_000 },
+      }
+    : {
+        api: { windowMs: FIFTEEN_MINUTES, limit: 300 },
+        auth: { windowMs: FIFTEEN_MINUTES, limit: 10 },
+      };
 
 function createLimiter({ windowMs, limit }) {
   return rateLimit({
