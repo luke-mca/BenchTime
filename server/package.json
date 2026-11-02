@@ -8,7 +8,8 @@
     "start": "node --env-file=.env src/server.js",
     "migrate": "node --env-file=.env scripts/migrate.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +25,7 @@
     "postgrator": "^8.0.0"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^5.0.5",
     "supertest": "^7.2.2",
     "vitest": "^5.0.0"
   },

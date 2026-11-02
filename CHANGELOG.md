@@ -73,7 +73,7 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 ### Changed 
 - labRepository.js, labs.js, labService.js, Home.jsx, and LabPage.jsx to implement the above mentioned changes. 
 
-## [Unreleased]
+## [Released]
 
 ### Added 
 - equipmentRepository.js plus `GET /api/labs/:id/equipment` and `POST /api/labs/:id/equipment` so a manager can add equipment (name and optional description) to a lab they own (US-9, FR-5, FR-7).
@@ -97,3 +97,9 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 - Added enpoints for a logged in manager to request utilization statistics for certain pieces of equipment. 
 - Managers can now see utilization statistics for every piece of equipment in a lab that they own. 
 - Students cannot see utilization statistics for pieces of equipment.  
+
+### Added 
+
+- Unit tests for adding equipment, making reservations(members + managers), managers editing reservations, and logging in/signing up. 
+
+- Added component tests for the client for the above unit tests. 
