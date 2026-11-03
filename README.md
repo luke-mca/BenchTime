@@ -201,6 +201,8 @@ non-functional requirement tables), and the success criteria.
 
 ## Contribution statements — Milestone 2
 
+**Luke McArthur** — Edit reservation and cancel reservation for managers. Unit test cases for code created by Jesse. Component testing/test cases for components created by Jesse. Integration tests and browser flow test. In the milestone 2 document: Peer Code Review, Integration Tests, Threat Model, OWASP Top 10, Branch/Commit Conventions.
+
 **Jesse Seidel** — Manager utilization statistics. Unit test cases for code created by Luke. Viewport testing/test cases. Component testing/test cases for components created by Luke. In the milestone 2 document: Changes made since Milestone 1, SQA plan, Cross-viewport/cross-platform testing evidence, implemented security control + before and after evidence, and the CHANGELOG.
 
 ## Documents
