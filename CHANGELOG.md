@@ -2,7 +2,7 @@
 
 Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [milestone-0] — 2026-09-02
+## [milestone-0] — 2026-09-02 - 2026-09-13
 
 ### Added
 
@@ -16,7 +16,7 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
   data model, and the reservation overlap strategy.
 - `.gitignore` covering dependencies, build output, coverage, and `.env` secrets.
 
-## [milestone-1] — 2026-09-13
+## [milestone-1] — 2026-09-13 - 2026-10-01
 
 ### Added 
 
@@ -88,7 +88,7 @@ Notable changes to BenchTime. Format based on [Keep a Changelog](https://keepach
 - Every lab returned by the API now includes `ownerUsername`, `memberCount`, and `equipmentCount`.
 - labRepository.js, labService.js, labs.js, api.js, Home.jsx, and LabPage.jsx to implement the above mentioned changes. 
 
-## [milestone-2] — 2026-10-01
+## [milestone-2] — 2026-10-01 - 11-2-2026
 
 ## [Released]
 

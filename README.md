@@ -26,6 +26,8 @@ NOTE: Every command block below starts from the repo root (the `BenchTime` folde
 ### Required Software 
 - Node.js: versions 24.19.0
 - npm: version 11.17 
+- vitest: version 5.0.5 
+- playwright: version 1.64.1
 - PostgreSQL: version 18. 
 - pgAdmin 4 : version 9.17. NOTE: This is not required, but is useful for viewing the SQL tables. 
 - NOTE: Slightly older/newer versions of the above software should work, but those versions were specifically tested.
@@ -80,6 +82,65 @@ cd client && npm run dev
 - You must create any demo accounts(Member/Manager) that you want to use. 
 - To start, click the "Sign Up" button on the home page. 
 
+## Testing 
+If you have not already, install the needed dependencies: 
+```bash 
+cd server && npm install 
+cd ../client && npm install 
+```
+
+### Create The Test Database 
+- This is very similar to the database needed for running BenchTime. 
+- First, copy the test env file 
+```bash 
+cd server 
+cp .env.test.example .env.test 
+```
+- Then, create your database using pgAdmin 
+- Fill out the database details in .env.test(similar to the normal .env file) 
+- Initialize the test database with 
+```bash 
+cd server
+npm run db:reset:test
+```
+
+### Unit Tests 
+- Note: These tests include the rate limiting tests. 
+```bash 
+cd server
+npm test
+npm run test:coverage #Will generate a coverage report in the coverage/ folder.
+```
+
+### Component Test
+```bash 
+cd client
+npm test
+npm run test:coverage #Will generate a coverage report
+```
+### Browser/Viewport tests 
+- Note: Running the viewport tests will also run the flow tests. Some of these tests are skipped as only mobile/desktop test cases are used. 102/110 of these test cases should pass(8 are skipped). 
+- If you have not installed playwright run: 
+```bash 
+cd client 
+npx playwright install 
+#Note: you may need to run 'npx playwright install --with-deps' to install system libraries.
+```
+- Then, to run the tests: 
+```bash 
+cd client
+npm run test:viewport
+```
+
+### Integration Tests
+- If you have not already, create the database. 
+- Install playwright as mentioned under Browser/Viewport tests
+- Then run these commands: 
+```bash 
+cd server
+npm run test:integration
+``` 
+
 ## Verifying Milestone 1
 
 With the server and client running, open http://localhost:5173 and check the following:
@@ -89,6 +150,12 @@ With the server and client running, open http://localhost:5173 and check the fol
 3. **Add the member.** Log back in as the manager, open the lab, and add the member by username.
 4. **Reserve.** Log in as the member. The lab now appears on the home page. Open it, click **Reserve** next to the equipment, pick a start and end time, and submit. The reservation appears under "Upcoming reservations".
 5. **Overlap is rejected.** Try to reserve the same equipment for a time that overlaps the first reservation. It is rejected with an error message.
+
+## Verifying Milestone 2
+1. **Milestone 1.** Verify everything in Milestone 1. 
+2. **Utilization Statistics** Verify that once a reservation inside of a lab has passed for a certain piece of equipment, the utilization statistics are updated appropriately. 
+3. **More Manager Control** Verify that a manager can edit/delete a member's reservation inside of a lab. 
+4. **Testing** Run the tests according to the above Testing section. 
 
 ## Layout
 
@@ -132,8 +199,15 @@ non-functional requirement tables), and the success criteria.
 
 **Jesse Seidel** — Initial project scaffolding(including the database table structure), allowing a manager to create/delete a lab, allowing members to view what labs they have been added to, and allowing a manager to add/remove members to a lab. In the milestone 1 document: Updated product brief/scope. Piroirtized backlog and definiton of done, analysis model, ADR, UX wireframes, design pattern + justification, and authentication. 
 
+## Contribution statements — Milestone 2
+
+**Jesse Seidel** — Manager utilization statistics. Unit test cases for code created by Luke. Viewport testing/test cases. Component testing/test cases for components created by Luke. In the milestone 2 document: Changes made since Milestone 1, SQA plan, Cross-viewport/cross-platform testing evidence, implemented security control + before and after evidence, and the CHANGELOG.
+
 ## Documents
 
 - [Prioritized backlog](BACKLOG.md)
-- [Architecture and data model](docs/architecture.md)
-- [Milestone 0 proposal report](docs/milestone-0/)
+- [Changelog](CHANGELOG.md)
+- [Architecture and data model](docs/Architecture/architecture.md)
+- [Milestone 0 proposal report](docs/milestone-0)
+- [Milestone 1 proposal report](docs/milestone-1)
+- [Software Quality Assurance Documents](docs/Quality/)
